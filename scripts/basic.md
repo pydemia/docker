@@ -71,3 +71,36 @@ AUTOSTART on boot
 ```sh
 sudo systemctl enable docker
 ```
+
+
+## Create an `Container`
+
+`Ubuntu 16.04` Image Download
+
+```sh
+docker run ubuntu:16.04
+```
+
+Then, Run this container:
+```sh
+docker run --rm -it ubuntu:16.04 /bin/bash
+```
+
+> run `/bin/bash` on init to enter the container.
+> `-it` for keyboard. 쉘을 실행하고 키보드 입력을 위해 -it 옵션을 줍니다. 추가적으로 프로세스가 종료되면 컨테이너가 자동으로 삭제되도록 --rm 옵션도 추가하였습니다.
+> `--rm` for eliminating the container on exit.
+>
+
+
+```sh
+cat /etc/issue
+
+ls
+
+```
+
+to exit:
+```sh
+exit
+```
+
