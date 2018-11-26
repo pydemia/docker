@@ -52,3 +52,10 @@ Run it:
 ```sh
 docker run -it -p 8888:8888 -p 6006:6006 lecture_anomaly_detection
 ```
+
+
+## Customizing
+
+```sh
+pip install conda
+```
