@@ -104,3 +104,10 @@ to exit:
 exit
 ```
 
+
+## Copy files
+
+```sh
+docker cp <containerID>:/foo.txt foo.txt
+docker cp <containerID>:/foo.txt foo.txt
+```
