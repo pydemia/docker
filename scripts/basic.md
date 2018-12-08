@@ -111,3 +111,14 @@ exit
 docker cp <containerID>:/foo.txt foo.txt
 docker cp <containerID>:/foo.txt foo.txt
 ```
+
+
+## Run
+
+```sh
+docker run -i -d -p 8888:8888 jupyter/tensorflow-notebook /bin/bash
+
+docker exec -u root -it bash
+```
+
+## 
