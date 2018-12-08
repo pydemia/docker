@@ -47,3 +47,8 @@ docker ps
 #docker exec -u skcc -it <dockerID> bash
 docker exec -it <dockerID> bash
 ```
+
+```sh
+docker run -i  -d -p 8800:8888 6600:6006 lecture_analytics_dl /bin/bash -c "jupyter notebook"
+
+```
