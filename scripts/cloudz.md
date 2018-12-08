@@ -42,7 +42,8 @@ docker load -i <filename>
 
 ## 
 ```sh
-docker run -i -d -p 8889:8888 lecture_anomaly_detection /bin/bash
+docker run -i --cpus=5 --memory=8g -d -p 8889:8888 lecture_anomaly_detection /bin/bash
 docker ps
-docker exec -u skcc -it <dockerID> bash
+#docker exec -u skcc -it <dockerID> bash
+docker exec -it <dockerID> bash
 ```
