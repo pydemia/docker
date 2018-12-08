@@ -6,6 +6,7 @@ ssh-keygen -R <ip>
 ssh root@<ip>
 
 useradd skcc -m -s /bin/bash
+passwd skcc
 visudo -f /etc/sudoers
 
 apt-get update
@@ -18,14 +19,30 @@ apt-get update
 apt-get install docker-engine
 systemctl enable docker
 service docker start
+
 docker run hello-world
 
 groupadd docker
-usermod -aG docker $USER
-ufw status
-ufw allow 2375/tcp
+sudo usermod -aG docker $USER
+sudo ufw status
+sudo ufw allow 2375/tcp
 
+su skcc
+mkdir repo
+cd repo
+scp
+cd ..
+```
 
+```
+docker save -o <filename> <imagename>
+docker load -i <filename> 
+  
 ```
 
 ## 
+```sh
+docker run -i -d -p 8889:8888 lecture_anomaly_detection /bin/bash
+docker ps
+docker exec -u skcc -it <dockerID> bash
+```
