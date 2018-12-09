@@ -49,8 +49,8 @@ docker exec -it <dockerID> bash
 ```
 
 ```sh
-docker run -i -d -p 8800:8888 6600:6006 lecture_analytics_dl /bin/bash -c "jupyter notebook"
-docker run -i -d --cpus=5 --memory=8g -p 8800:8888 6600:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d -p 8800:8888 -p 6600:6006 lecture_analytics_dl /bin/bash -c "jupyter notebook"
+docker run -i -d --cpus=5 --memory=8g -p 8800:8888 -p 6600:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
 docker exec -it <dockerID> bash
 
 ```
