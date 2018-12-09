@@ -54,3 +54,20 @@ docker run -i -d --cpus=5 --memory=8g -p 8800:8888 -p 6600:6006 lecture_analytic
 docker exec -it <dockerID> bash
 
 ```
+
+
+```sh
+docker run -i -d --cpus=5 --memory=8g -p 8800:8888 -p 6600:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8801:8888 -p 6601:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8802:8888 -p 6602:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8803:8888 -p 6603:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8804:8888 -p 6604:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8805:8888 -p 6605:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8806:8888 -p 6606:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8807:8888 -p 6607:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8808:8888 -p 6608:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8808:8888 -p 6608:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8809:8888 -p 6609:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+docker run -i -d --cpus=5 --memory=8g -p 8810:8888 -p 6610:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+```
+
