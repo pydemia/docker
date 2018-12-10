@@ -57,6 +57,7 @@ docker exec -it <dockerID> bash
 
 
 ```sh
+
 docker run -i -d --cpus=5 --memory=8g -p 8800:8888 -p 6600:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
 docker run -i -d --cpus=5 --memory=8g -p 8801:8888 -p 6601:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
 docker run -i -d --cpus=5 --memory=8g -p 8802:8888 -p 6602:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
@@ -69,5 +70,6 @@ docker run -i -d --cpus=5 --memory=8g -p 8808:8888 -p 6608:6006 lecture_analytic
 docker run -i -d --cpus=5 --memory=8g -p 8808:8888 -p 6608:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
 docker run -i -d --cpus=5 --memory=8g -p 8809:8888 -p 6609:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
 docker run -i -d --cpus=5 --memory=8g -p 8810:8888 -p 6610:6006 lecture_analytics_dl /bin/bash -c "bash ./autostart.sh"
+
 ```
 
