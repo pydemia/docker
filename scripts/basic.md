@@ -121,4 +121,24 @@ docker run -i -d -p 8888:8888 jupyter/tensorflow-notebook /bin/bash
 docker exec -u root -it bash
 ```
 
-## 
+## Login
+
+```sh
+docker login -u pydemia
+docker tag lecture_analytics_dl pydemia/jupyter-notebook
+docker push pydemia/jupyter-notebook
+
+```
+
+
+### Push & Pull Images in GCP
+
+```sh
+gcloud auth configure-docker
+docker pull us.gcr.io/pydemia-cloud/tf-1-12-intel-mkl-v8cpu-30mem-300ssd
+
+docker tag tf-1-12-intel-mkl-v8cpu-30mem-300ssd gcr.io/pydemia-cloud/jupyterhub
+
+```
+
+
