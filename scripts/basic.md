@@ -73,9 +73,17 @@ sudo systemctl enable docker
 ```
 
 ```sh
+echo "export DOCKER_HOST=tcp://localhost:2375" >> ~/.zshrc
+```
+
+```sh
 vim /lib/systemd/system/docker.service
 ```
 
+```diff
+-ExecStart=/usr/bin/dockerd -H fd://
++ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 fd://
+```
 
 ## Create an `Container`
 
