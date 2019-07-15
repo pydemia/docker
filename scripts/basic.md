@@ -72,6 +72,10 @@ AUTOSTART on boot
 sudo systemctl enable docker
 ```
 
+```sh
+vim /lib/systemd/system/docker.service
+```
+
 
 ## Create an `Container`
 
