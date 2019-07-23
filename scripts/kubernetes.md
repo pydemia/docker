@@ -35,6 +35,7 @@ sudo ufw allow 10251/tcp
 sudo ufw allow 10252/tcp
 ```
 
+
 Worker node(s):
 
 Protocol	Direction	Port Range	Purpose	Used By
