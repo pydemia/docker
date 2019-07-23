@@ -28,7 +28,7 @@ TCP	Inbound	10250	Kubelet API	Self, Control plane
 TCP	Inbound	10251	kube-scheduler	Self
 TCP	Inbound	10252	kube-controller-manager	Self
 ```sh
-sudo ufw allow 6443*/tcp
+sudo ufw allow 6443/tcp
 sudo ufw allow 2379-2380/tcp
 sudo ufw allow 10250/tcp
 sudo ufw allow 10251/tcp
