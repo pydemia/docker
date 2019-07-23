@@ -6,6 +6,8 @@
 
 ```sh
 sudo apt install qemu-kvm libvirt-bin bridge-utils ubuntu-vm-builder -y
+sudo apt install libvirt-clients libvirt-daemon-system qemu-kvm -y
+sudo yum install libvirt-daemon-kvm qemu-kvm -y
 
 # GUI manager
 sudo apt install virt-manager -y
