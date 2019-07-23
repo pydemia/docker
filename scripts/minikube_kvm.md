@@ -13,8 +13,7 @@ sudo apt install virt-manager -y
 # Authentication
 sudo adduser $(id -un) libvirt
 sudo adduser $(id -un) kvm
-
-# sudo adduser $(id -un) libvirtd
+sudo adduser $(id -un) libvirtd
 ```
 
 ### Minikube
