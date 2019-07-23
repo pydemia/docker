@@ -21,12 +21,13 @@ apt-mark hold kubelet kubeadm kubectl kubernetes-cni
 
 Control-plane node(s):
 
-| Protocol | Direction | Port | Range | Purpose	Used By
-TCP	Inbound	6443*	Kubernetes API server	All
-TCP	Inbound	2379-2380	etcd server client API	kube-apiserver, etcd
-TCP	Inbound	10250	Kubelet API	Self, Control plane
-TCP	Inbound	10251	kube-scheduler	Self
-TCP	Inbound	10252	kube-controller-manager	Self
+| Protocol | Direction | Port Range | Purpose	Used By |
+| :--: | :--: | :--: | :--: | 
+| TCP | Inbound | 6443* | Kubernetes API server	All |
+| TCP | Inbound | 2379-2380 | etcd server client API	kube-apiserver, etcd |
+| TCP | Inbound | 10250 | Kubelet API	Self, Control plane |
+| TCP | Inbound | 10251 | kube-scheduler	Self |
+| TCP | Inbound | 10252 | kube-controller-manager	Self |
 ```sh
 sudo ufw allow 6443/tcp
 sudo ufw allow 2379-2380/tcp
@@ -38,9 +39,10 @@ sudo ufw allow 10252/tcp
 
 Worker node(s):
 
-Protocol	Direction	Port Range	Purpose	Used By
-TCP	Inbound	10250	Kubelet API	Self, Control plane
-TCP	Inbound	30000-32767	NodePort Services**	All
+| Protocol | Direction | Port Range	| Purpose	Used By |
+| :--: | :--: | :--: | :--: |
+| TCP | Inbound	10250 | Kubelet API	Self, Control plane |
+| TCP | Inbound	30000-32767 | NodePort Services**	All |
 ```sh
 sudo ufw allow 10250/tcp
 sudo ufw allow 30000-32767/tcp
