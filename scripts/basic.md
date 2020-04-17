@@ -153,4 +153,17 @@ docker tag tf-1-12-intel-mkl-v8cpu-30mem-300ssd gcr.io/pydemia-cloud/jupyterhub
 
 ```
 
+### Change Docker Image Directory
 
+Default: `/var/lib/docker/`
+
+```sh
+vim /etc/docker/daemon.json
+```
+
+```json
+{
+    "data-root": "/mnt/hdc0/docker_data",
+    "storage-driver": "overlay2"
+}
+```
