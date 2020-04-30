@@ -1,0 +1,23 @@
+# Read more about SSH config files: https://linux.die.net/man/5/ssh_config
+# HostName: static IP or name in /etc/hosts
+
+
+Host jn00
+    HostName 192.168.201.2
+    User pydemia
+    IdentityFile /home/pydemia/.ssh/pydemia-server-surface-rsa-key
+
+Host jn01
+    HostName 192.168.201.3
+    User pydemia
+    IdentityFile /home/pydemia/.ssh/pydemia-server-surface-rsa-key
+
+Host jn02
+    HostName 192.168.201.4
+    User pydemia
+    IdentityFile /home/pydemia/.ssh/pydemia-server-surface-rsa-key
+
+Host jn03
+    HostName 192.168.201.5
+    User pydemia
+    IdentityFile /home/pydemia/.ssh/pydemia-server-surface-rsa-key
