@@ -10,12 +10,27 @@
 ## Install NGC CLI
 
 ### Linux
+```sh
+wget -O ngccli_cat_linux.zip https://ngc.nvidia.com/downloads/ngccli_cat_linux.zip && \
+unzip -o ngccli_cat_linux.zip -d ngccli && \
+md5sum -c ngccli/ngc.md5 && \
+chmod u+x ngccli/ngc && \
+mkdir -p ~/.local/bin && \
+cp ngccli/ngc ~/.local/bin/ && \
+sudo cp ngccli/ngc /usr/local/bin/ && \
+rm -r ngccli
+
+ngc config set
+```
 
 The NGC CLI binary for Linux is supported on Ubuntu 16.04 and later distributions.
 
 Click Download CLI to download the zip file that contains the binary, then transfer the zip file to a directory where you have permissions and then unzip and execute the binary. You can also download, unzip, and install from the command line by moving to a directory where you have execute permissions and then running the following command:
 ```sh
-wget -O ngccli_cat_linux.zip https://ngc.nvidia.com/downloads/ngccli_cat_linux.zip && unzip -o ngccli_cat_linux.zip && chmod u+x ngc
+wget -O ngccli_cat_linux.zip https://ngc.nvidia.com/downloads/ngccli_cat_linux.zip && \
+unzip -o ngccli_cat_linux.zip -d ngccli && \
+cd ngccli \
+chmod u+x ngc
 ```
 
 Check the binary's md5 hash to ensure the file wasn't corrupted during download:
@@ -26,6 +41,8 @@ md5sum -c ngc.md5
 Add your current directory to path:
 ```sh
 echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.bash_profile && source ~/.bash_profile
+echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.bashrc && source ~/.bashrc
+echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.zshrc && source ~/.zshrc
 ```
 
 You must configure NGC CLI for your use so that you can run the commands.
