@@ -453,7 +453,109 @@ Result = PASS
 
 ### Kubernetes Setting
 
+* Time server sync with `ntp`
+* Static IP Address
+* no Memory SWAP
 
+#### NTP Time Server SYnc
+
+Prerequisite:
+```sh
+sudo apt install -y ntp
+```
+
+##### On MASTER:
+Add the following to provide your current local time as a default.
+you should temporarily lose Internet connectivity:
+
+```sh
+echo '
+server 127.127.1.0
+fudge 127.127.1.0 stratum 10
+' | sudo tee -a /etc/ntp.conf
+```
+
+Then Restart NTP:
+```sh
+sudo /etc/init.d/ntp restart
+```
+
+##### On NODEs:
+
+On all the remaining nodes in your cluster, set them up to sync clocks with the node which was designated as the main time server in the cluster.
+
+*Declare the pool's domain name with a `pool` command (and not `server`)*
+```diff
+-server <main time server> iburst
++pool <main time server> iburst
+```
+[pool Directive vs. server Lines](https://kb.meinbergglobal.com/kb/time_sync/ntp/configuration/ntp_pool_usage#pool_directive_vs_server_lines)
+
+
+**_Result_**
+```sh
+# Specify one or more NTP servers.
+server kube-jn00 iburst
+
+# Use servers from the NTP Pool Project. Approved by Ubuntu Technical Board
+# on 2011-02-08 (LP: #104525). See http://www.pool.ntp.org/join.html for
+# more information.
+#pool 0.ubuntu.pool.ntp.org iburst
+#pool 1.ubuntu.pool.ntp.org iburst
+#pool 2.ubuntu.pool.ntp.org iburst
+#pool 3.ubuntu.pool.ntp.org iburst
+
+# Use Ubuntu's ntp server as a fallback.
+#pool ntp.ubuntu.com
+
+...
+```
+
+Then Restart NTP:
+```sh
+sudo /etc/init.d/ntp restart
+```
+
+Check Connectivity to the main server:
+```sh
+ntpq -c lpeer
+```
+
+```sh
+pydemia@kube-jn01:~$ ntpq -c lpeer
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+*kube-jn00       46.243.26.34     2 u    2   64    1    1.266  -27.718   0.774
+```
+
+(Info) When running the same command on the main server at the same time:
+```sh
+pydemia@kube-jn00:~$ ntpq -c lpeer
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+ 0.ubuntu.pool.n .POOL.          16 p    -   64    0    0.000    0.000   0.000
+ 1.ubuntu.pool.n .POOL.          16 p    -   64    0    0.000    0.000   0.000
+ 2.ubuntu.pool.n .POOL.          16 p    -   64    0    0.000    0.000   0.000
+ 3.ubuntu.pool.n .POOL.          16 p    -   64    0    0.000    0.000   0.000
+ ntp.ubuntu.com  .POOL.          16 p    -   64    0    0.000    0.000   0.000
+ LOCAL(0)        .LOCL.          10 l 1045   64    0    0.000    0.000   0.000
+-ntp8.flashdance 192.36.143.151   2 u   31   64  377  293.367   28.453  10.973
+*46.243.26.34 (4 .GPS.            1 u   38   64  377  270.858   17.212   8.267
+#195.50.171.101  145.253.2.212    2 u  101   64  362  281.393    1.280  18.028
++78.156.103.10   193.162.159.194  2 u   35   64  377  293.255   31.363  10.559
++nsa.lds.net.ua  128.0.142.251    3 u   37   64  377  313.546   36.711   7.618
+-213.251.52.250  195.66.241.10    2 u   42   64  245  257.189    5.322  21.922
++tethys.hot-chil 131.188.3.222    2 u  105   64  376  273.004   34.414  13.046
+#ntp2.0x00.lv    131.188.3.221    2 u   44   64  377  307.520   21.495  12.015
+#time.cloudflare 10.51.8.166      3 u   43   64  377   44.800   10.580  12.267
++alphyn.canonica 132.163.96.1     2 u   65   64  377  211.766   21.924  10.917
++re.uni-paderbor .DCF.            1 u   36   64  377  295.706   32.057  10.841
+-ns1.alza.is     85.199.214.98    2 u   34   64  377  311.954   30.566   8.215
++zero.gotroot.ca 214.176.184.39   2 u   29   64  377  155.720   13.616  10.911
+```
+
+
+#### (Optional) Static IP Addressing
 * Static IP addressing  
 ```sh
 sudo apt-get install netplan.io -y
@@ -472,7 +574,7 @@ sudo vim /etc/hosts
 
 ```txt
 127.0.0.1       localhost
-127.0.1.1       pydemia-jn00 # Its own hostname
+127.0.1.1       kube-jn00 # Its own hostname
 
 
 192.168.2.11   kube-jn00
@@ -483,7 +585,9 @@ sudo vim /etc/hosts
 
 ```diff
 -sudo hostnamectl set-hostname master-node
+echo $HOSTNAME
 ```
+
 
 
 ```sh
