@@ -784,7 +784,14 @@ sudo vim /etc/bash.bashrc
 echo '
 export API_ADDR="192.168.2.11"      # Master Server external IP
 export DNS_DOMAIN="k8cluster.local" # default: "cluster.local"
-export POD_NET="10.100.0.0/16"      # k8s cluster POD Network CIDR
+export POD_NET="10.244.0.0/16"    # k8s cluster POD Network CIDR
+# `POD_NET` for flannel: 10.244.0.0/16, calico: 192.168.0.0/16
+' | sudo tee -a /etc/bash.bashrc
+
+echo '
+export API_ADDR="192.168.2.11"      # Master Server external IP
+export DNS_DOMAIN="k8cluster.local" # default: "cluster.local"
+export POD_NET="192.168.99.0/24"    # k8s cluster POD Network CIDR
 # `POD_NET` for flannel: 10.244.0.0/16, calico: 192.168.0.0/16
 ' | sudo tee -a /etc/bash.bashrc
 ```
@@ -827,16 +834,16 @@ From <https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-gui
 [certs] Generating "front-proxy-ca" certificate and key
 [certs] Generating "front-proxy-client" certificate and key
 [certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
 [certs] Generating "etcd/healthcheck-client" certificate and key
 [certs] Generating "apiserver-etcd-client" certificate and key
 [certs] Generating "etcd/server" certificate and key
 [certs] etcd/server serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
-[certs] Generating "etcd/peer" certificate and key
-[certs] etcd/peer serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
 [certs] Generating "ca" certificate and key
-[certs] Generating "apiserver-kubelet-client" certificate and key
 [certs] Generating "apiserver" certificate and key
 [certs] apiserver serving cert is signed for DNS names [kube-jn00 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.k8cluster.local] and IPs [10.96.0.1 192.168.2.11]
+[certs] Generating "apiserver-kubelet-client" certificate and key
 [certs] Generating "sa" key and public key
 [kubeconfig] Using kubeconfig folder "/etc/kubernetes"
 [kubeconfig] Writing "admin.conf" kubeconfig file
@@ -850,13 +857,13 @@ From <https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-gui
 [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
 [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
 [kubelet-check] Initial timeout of 40s passed.
-[apiclient] All control plane components are healthy after 72.514103 seconds
+[apiclient] All control plane components are healthy after 42.517189 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
 [kubelet] Creating a ConfigMap "kubelet-config-1.15" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Skipping phase. Please see --upload-certs
 [mark-control-plane] Marking the node kube-jn00 as control-plane by adding the label "node-role.kubernetes.io/master=''"
 [mark-control-plane] Marking the node kube-jn00 as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
-[bootstrap-token] Using token: bxgzvr.fijfbuotjonhftox
+[bootstrap-token] Using token: pv28di.rcmr8u0gza8hw4ee
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
 [bootstrap-token] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
@@ -879,15 +886,15 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 192.168.2.11:6443 --token bxgzvr.fijfbuotjonhftox \
-    --discovery-token-ca-cert-hash sha256:812c3044322a616b892fee34828458028d52bf99767f2e7c3ca035586c4d11f2
+kubeadm join 192.168.2.11:6443 --token pv28di.rcmr8u0gza8hw4ee \
+    --discovery-token-ca-cert-hash sha256:5e74fed69a819dba76978f1959651cc2e61599624061e5933b12e6f04a544e91
 ```
 
 ##### On MASTER:
 To start using your cluster, you need to run the following as a regular user:
 ```sh
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 export KUBECONFIG=$HOME/.kube/config
 echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
@@ -895,14 +902,15 @@ echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
 
 ##### On WORKER, as **_`ROOT`_**:
 ```sh
-kubeadm join 192.168.2.11:6443 --v=2 --token bxgzvr.fijfbuotjonhftox \
-    --discovery-token-ca-cert-hash sha256:812c3044322a616b892fee34828458028d52bf99767f2e7c3ca035586c4d11f2
+kubeadm join 192.168.2.11:6443 --token pv28di.rcmr8u0gza8hw4ee \
+    --discovery-token-ca-cert-hash sha256:5e74fed69a819dba76978f1959651cc2e61599624061e5933b12e6f04a544e91
 ```
 
 
-##### Pod Networking via `Calico`(used by Google)
+##### ~~Pod Networking via `calico`(used by Google)~~
+**_Because of `arm64` & CIDR Problem_**
 
-`192.168.0.0/16` -> `10.100.0.0/16`
+`192.168.0.0/16` -> `192.168.99.0/24`
 
 ```yaml
 - name: CALICO_IPV4POOL_CIDR
@@ -911,9 +919,8 @@ kubeadm join 192.168.2.11:6443 --v=2 --token bxgzvr.fijfbuotjonhftox \
 
 ```sh
 wget https://docs.projectcalico.org/v3.9/manifests/calico.yaml -O calico.yaml
-sed -i -e 's?192.168.0.0/16?10.100.0.0/16?g' calico.yaml
+sed -i -e 's?192.168.0.0/16?192.168.99.0/24?g' calico.yaml
 kubectl apply -f calico.yaml
-
 ```
 
 ```ascii
@@ -940,11 +947,22 @@ daemonset.apps/calico-node created
 serviceaccount/calico-node created
 deployment.apps/calico-kube-controllers created
 serviceaccount/calico-kube-controllers created
+```
 
+* `calicoctl` applications as a pod:
+```sh
+kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml
 
+#kubectl exec -ti -n kube-system calicoctl -- /calicoctl get profiles -o wide
 sudo vim /etc/bash.bashrc
 alias calicoctl="kubectl exec -i -n kube-system calicoctl /calicoctl -- "
 ```
+
+##### Pod Networking via `flannel`
+```sh
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.11.0/Documentation/kube-flannel.yml
+```
+
 
 #### Check it
 
@@ -1007,51 +1025,30 @@ More details here: https://curl.haxx.se/docs/sslcerts.html
 curl failed to verify the legitimacy of the server and therefore could not
 establish a secure connection to it. To learn more about this situation and
 how to fix it, please visit the web page mentioned above.
-root@kube-jn01:/home/pydemia# curl https://10.96.0.1:443/version
-curl: (60) SSL certificate problem: unable to get local issuer certificate
-More details here: https://curl.haxx.se/docs/sslcerts.html
-
-curl failed to verify the legitimacy of the server and therefore could not
-establish a secure connection to it. To learn more about this situation and
-how to fix it, please visit the web page mentioned above.
 ```
-
-kubectl -n kube-system get pods
-kubectl -n kube-system logs coredns-5d4dd4b4db-7nvb9
-
-iptables -P FORWARD ACCEPT
-
-
-wget https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml -O calicoctl-etcd.yaml
-sed -i -e 's?192.168.0.0/16?10.100.0.0/16?g' calicoctl-etcd.yaml
-kubectl apply -f calico.yaml
-
-
-kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml
-kubectl exec -ti -n kube-system calicoctl -- /calicoctl get profiles -o wide
-
 
 #### Calico Setting
 
 ```sh
 kubectl get pods --all-namespaces
 
-NAMESPACE     NAME                                       READY   STATUS             RESTARTS   AGE
-kube-system   calico-kube-controllers-56cd854695-twxwt   0/1     CrashLoopBackOff   6          12m
-kube-system   calico-node-gsmjm                          0/1     Running            0          12m
-kube-system   calico-node-h2p8x                          0/1     Running            0          12m
-kube-system   calico-node-s2q8z                          0/1     Running            0          12m
-kube-system   calico-node-t79ct                          0/1     Running            0          12m
-kube-system   coredns-5d4dd4b4db-7nvb9                   0/1     Running            6          15m
-kube-system   coredns-5d4dd4b4db-sk4ng                   0/1     Running            6          15m
-kube-system   etcd-kube-jn00                             1/1     Running            0          15m
-kube-system   kube-apiserver-kube-jn00                   1/1     Running            0          14m
-kube-system   kube-controller-manager-kube-jn00          1/1     Running            1          14m
-kube-system   kube-proxy-d8nhd                           1/1     Running            0          15m
-kube-system   kube-proxy-fz9x4                           1/1     Running            0          12m
-kube-system   kube-proxy-jp7cl                           1/1     Running            0          12m
-kube-system   kube-proxy-mr9h4                           1/1     Running            0          12m
-kube-system   kube-scheduler-kube-jn00                   1/1     Running            1          14m
+NAMESPACE     NAME                                       READY   STATUS                       RESTARTS   AGE
+kube-system   calico-kube-controllers-56cd854695-99krw   1/1     Running                      0          6m34s
+kube-system   calico-node-44sv8                          0/1     Running                      0          3m25s
+kube-system   calico-node-69s5g                          0/1     Running                      0          6m34s
+kube-system   calico-node-bkrxb                          0/1     Running                      0          3m35s
+kube-system   calico-node-mq7kg                          0/1     Running                      0          3m34s
+kube-system   calicoctl                                  0/1     CreateContainerConfigError   0          4m7s
+kube-system   coredns-5d4dd4b4db-qlf9n                   1/1     Running                      0          12m
+kube-system   coredns-5d4dd4b4db-qm4rs                   1/1     Running                      0          12m
+kube-system   etcd-kube-jn00                             1/1     Running                      0          11m
+kube-system   kube-apiserver-kube-jn00                   1/1     Running                      0          11m
+kube-system   kube-controller-manager-kube-jn00          1/1     Running                      0          11m
+kube-system   kube-proxy-5kvqh                           1/1     Running                      0          3m35s
+kube-system   kube-proxy-bxvkk                           1/1     Running                      0          3m25s
+kube-system   kube-proxy-jsmrl                           1/1     Running                      0          12m
+kube-system   kube-proxy-zrjg6                           1/1     Running                      0          3m34s
+kube-system   kube-scheduler-kube-jn00                   1/1     Running                      0          11m
 ```
 
 ```sh
@@ -1064,6 +1061,8 @@ W0502 21:48:40.810016       1 client_config.go:541] Neither --kubeconfig nor --m
 2020-05-02 21:48:50.813 [ERROR][1] client.go 255: Error getting cluster information config ClusterInformation="default" error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
 2020-05-02 21:48:50.813 [FATAL][1] main.go 113: Failed to initialize Calico datastore error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
 ```
+
+kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
 
 #### Test
 
@@ -1079,10 +1078,27 @@ metadata:
 spec:
   containers:
     - name: nvidia
-      image: pydemia/nvidia-jetson-nano:latest
+      image: pydemia/nvidia-jn-devicequery:r32.4.2
       command: [ "./deviceQuery" ]
-
 ```
+
+```sh
+echo '
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devicequery
+spec:
+  containers:
+    - name: nvidia
+      imagePullPolicy: IfNotPresent
+      image: pydemia/nvidia-jn-devicequery:r32.4.2
+      command: [ "./deviceQuery" ]
+' | tee ~/gpu-test.yml
+
+kubectl apply -f gpu-test.yml
+```
+
 
 ```sh
 kubectl apply -f gpu-test.yml
@@ -1090,6 +1106,27 @@ kubectl apply -f gpu-test.yml
 
 kubectl logs devicequery
 
+```
+
+```ascii
+NAMESPACE     NAME                                       READY   STATUS                       RESTARTS   AGE
+default       devicequery                                0/1     ContainerCreating            0          43s
+kube-system   calico-kube-controllers-56cd854695-99krw   1/1     Running                      0          10m
+kube-system   calico-node-44sv8                          0/1     Running                      0          7m30s
+kube-system   calico-node-69s5g                          0/1     Running                      0          10m
+kube-system   calico-node-bkrxb                          1/1     Running                      0          7m40s
+kube-system   calico-node-mq7kg                          0/1     Running                      0          7m39s
+kube-system   calicoctl                                  0/1     CreateContainerConfigError   0          8m12s
+kube-system   coredns-5d4dd4b4db-qlf9n                   1/1     Running                      0          16m
+kube-system   coredns-5d4dd4b4db-qm4rs                   1/1     Running                      0          16m
+kube-system   etcd-kube-jn00                             1/1     Running                      0          15m
+kube-system   kube-apiserver-kube-jn00                   1/1     Running                      0          15m
+kube-system   kube-controller-manager-kube-jn00          1/1     Running                      0          15m
+kube-system   kube-proxy-5kvqh                           1/1     Running                      0          7m40s
+kube-system   kube-proxy-bxvkk                           1/1     Running                      0          7m30s
+kube-system   kube-proxy-jsmrl                           1/1     Running                      0          16m
+kube-system   kube-proxy-zrjg6                           1/1     Running                      0          7m39s
+kube-system   kube-scheduler-kube-jn00                   1/1     Running                      0          15m
 ```
 
 
