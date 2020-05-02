@@ -97,16 +97,30 @@ ssh-keygen -f "/home/pydemia/.ssh/known_hosts" -R 192.168.2.14
 
 ```sh
 sudo apt update
-sudo apt install vim htop -y
+sudo apt install -y \
+  build-essential \
+  vim htop \
+  git tree curl \
+  python3-pip
 
+curl -sL https://deb.nodesource.com/setup_12.x  | sudo bash - && \
+sudo apt-get -y install nodejs && \
+sudo npm install -g npm
+
+# Set Locale
+sudo apt-get update -y && \
+sudo apt-get install -y locales && \
+sudo locale-gen --purge "en_US.UTF-8"
+sudo bash -c "echo 'LC_ALL=en_US.UTF-8' >> /etc/environment"
+sudo bash -c "echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen"
+sudo bash -c "echo 'LANG=en_US.UTF-8' > /etc/locale.conf"
 ```
-
 
 * Disable GUI
 
 ```sh
 sudo systemctl set-default multi-user.target
-
+#--------------------------------------------------#
 #Removed /etc/systemd/system/default.target.
 #Created symlink /etc/systemd/system/default.target → /lib/systemd/system/multi-user.target.
 
@@ -129,18 +143,26 @@ Mem:           3.9G        178M        3.4G         17M        284M        3.5G
 Swap:            0B          0B          0B
 ```
 
+(Optional) For `master`:
 ```sh
-sudo tee /etc/rc.local << EOF
-#!/bin/bash
+# GCLOUD
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && \
+sudo apt-get update -y && \
+sudo apt-get install google-cloud-sdk -y
 
-swapoff -a
+# AWS CLI 2
+curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip && \
+unzip -q awscliv2.zip && \
+sudo ./aws/install && \
+rm -rf ./aws && \
+rm awscliv2.zip
 
-EOF
+
+# AZURE CLI
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 ```
 
-```sh
-
-```
 
 ### Docker Setting
 
