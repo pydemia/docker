@@ -13,12 +13,14 @@
 ```sh
 wget -O ngccli_cat_linux.zip https://ngc.nvidia.com/downloads/ngccli_cat_linux.zip && \
 unzip -o ngccli_cat_linux.zip -d ngccli && \
-md5sum -c ngccli/ngc.md5 && \
-chmod u+x ngccli/ngc && \
+cd ngccli && \
+md5sum -c ngc.md5 && \
+chmod u+x ngc && \
 mkdir -p ~/.local/bin && \
-cp ngccli/ngc ~/.local/bin/ && \
-sudo cp ngccli/ngc /usr/local/bin/ && \
-rm -r ngccli
+cp ngc ~/.local/bin/ && \
+sudo cp ngc /usr/local/bin/ && \
+cd ../ && \
+rm ngccli_cat_linux.zip && rm -r ngccli
 
 ngc config set
 ```
