@@ -242,7 +242,7 @@ sudo tee /etc/docker/daemon.json << EOF
             "path": "nvidia-container-runtime",
             "runtimeArgs": []
         }
-    }
+    },
     "exec-opts": ["native.cgroupdriver=systemd"],
     "log-driver": "json-file",
     "log-opts": {
@@ -454,10 +454,12 @@ Result = PASS
 ### Kubernetes Setting
 
 * Time server sync with `ntp`
+* Docker service enabled
 * Static IP Address
 * no Memory SWAP
+* Port Allocation & Firewall Setting
 
-#### NTP Time Server SYnc
+#### NTP Time Server Sync
 
 Prerequisite:
 ```sh
@@ -480,7 +482,7 @@ Then Restart NTP:
 sudo /etc/init.d/ntp restart
 ```
 
-##### On NODEs:
+##### On WORKER:
 
 On all the remaining nodes in your cluster, set them up to sync clocks with the node which was designated as the main time server in the cluster.
 
@@ -554,7 +556,43 @@ pydemia@kube-jn00:~$ ntpq -c lpeer
 +zero.gotroot.ca 214.176.184.39   2 u   29   64  377  155.720   13.616  10.911
 ```
 
+#### Docker service on
+
+* Enable docker service
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable docker
+sudo systemctl restart docker
+```
+
+* Set `native.cgroupdriver=systemd`
+```sh
+sudo tee /etc/docker/daemon.json << EOF
+{
+    "default-runtime": "nvidia",
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    },
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2"
+}
+
+EOF
+```
+
 #### Port allocation
+
+From <https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#check-required-ports>
+
+
+
 From <https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-networking.md>
 
 The information below describes a minimum set of port allocations used by Kubernetes components. Some of these allocations will be optional depending on the deployment (e.g. if flannel or Calico is being used). Additionally, there are likely additional ports a deployer will need to open on their infrastructure (e.g. 22/ssh).
@@ -585,6 +623,52 @@ etcd Node Inbound
 -----------|------------|---------------|----------------------------------------------------------|
 | TCP      | 2379-2380  | Master Nodes  | etcd server client API                                   |
 | TCP      | 2379-2380  | Worker Nodes  | etcd server client API (only required if using flannel or Calico). |
+
+
+##### Install `ufw`
+
+Just in case:
+```sh
+sudo systemctl stop firewalld
+sudo systemctl disable firewalld
+```
+
+In case of Ubuntu:
+```sh
+sudo apt install -y ufw
+sudo ufw allow ssh
+sudo ufw allow 22
+sudo ufw enable
+sudo systemctl enable ufw
+sudo systemctl start ufw
+```
+
+In case of Error `ufw` failed with `ip6tables-restore: line 142 failed; Problem running '/etc/ufw/before6.rules'`
+It seems to be raised with ipv6, then:
+```sh
+sudo sed -i -e 's?IPV6=yes?IPV6=no?g' /etc/default/ufw
+sudo shutdown -r now
+```
+Check it works:
+```sh
+sudo systemctl status ufw
+```
+
+
+##### Master Node
+
+```sh
+sudo ufw allow 6443,443,2379:2380,10250:10255/tcp
+sudo ufw allow 8285,8472/udp
+```
+
+##### Worker Node
+
+```sh
+sudo ufw allow 10250:10255,30000:32767,179,2379:2380/tcp
+sudo ufw allow 8285,8472/udp
+```
+
 
 
 #### Add Kubernetes Repository & Install Kubernetes on all resources
@@ -620,12 +704,47 @@ Fix kubernetes versions:
 sudo apt-mark hold kubelet kubeadm kubectl kubernetes-cni
 ```
 
+remove it:
+```sh
+sudo apt-get purge kubeadm kubectl kubelet kubernetes-cni kube*
+sudo apt autoremove
+```
+
+##### CRI Runtime
+
+
+* For `containerd`
+
+As `ROOT`:
+```sh
+cat > /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+
+modprobe overlay
+modprobe br_netfilter
+
+# Setup required sysctl params, these persist across reboots.
+cat > /etc/sysctl.d/99-kubernetes-cri.conf <<EOF
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.ipv4.conf.all.forwarding        = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+sysctl --system
+
+sudo sysctl net.ipv4.conf.all.forwarding=1
+sudo iptables -P FORWARD ACCEPT
+```
 
 
 #### (Optional) Static IP Addressing
 * Static IP addressing  
 ```sh
 sudo apt-get install netplan.io -y
+sudo netplan apply
 ```
 
 [Using DHCP and static addressing via `netplan`](https://netplan.io/examples#using-dhcp-and-static-addressing)
@@ -663,28 +782,41 @@ sudo vim /etc/bash.bashrc
 ```
 ```sh
 echo '
-export API_ADDR="192.168.2.11"  # Master Server external IP
-export DNS_DOMAIN="cluster.local"
-export POD_NET="10.100.0.0/16"   # k8s cluster POD Network CIDR
+export API_ADDR="192.168.2.11"      # Master Server external IP
+export DNS_DOMAIN="k8cluster.local" # default: "cluster.local"
+export POD_NET="10.100.0.0/16"      # k8s cluster POD Network CIDR
+# `POD_NET` for flannel: 10.244.0.0/16, calico: 192.168.0.0/16
 ' | sudo tee -a /etc/bash.bashrc
 ```
 
+
+### Initialize a Kubernetes Cluster
+
+#### On MASTER:
+
+```sh
+rm -rf /etc/kubernetes
+rm -rf /var/lib/etcd
+kubeadm reset
+```
 
 
 **_As `ROOT`_**:
 ```sh
 kubeadm init \
- --apiserver-advertise-address ${API_ADDR} \
- --service-dns-domain "${DNS_DOMAIN}" \
- --pod-network-cidr=${POD_NET} \
- --kubernetes-version "1.15.10"
+  --apiserver-advertise-address "${API_ADDR}" \
+  --service-dns-domain "${DNS_DOMAIN}" \
+  --pod-network-cidr=${POD_NET} \
+  --kubernetes-version "1.15.10"
 ```
+
+Note: this will autodetect the network interface to advertise the master on as the interface with the default gateway. If you want to use a different interface, specify `--apiserver-advertise-address <ip-address>` argument to `kubeadm
+init`.
+From <https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-guides/kubeadm/#24-initializing-your-master>
 
 ```ascii
 [init] Using Kubernetes version: v1.15.10
 [preflight] Running pre-flight checks
-        [WARNING Service-Docker]: docker service is not enabled, please run 'systemctl enable docker.service'
-        [WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Please follow the guide at https://kubernetes.io/docs/setup/cri/
 [preflight] Pulling images required for setting up a Kubernetes cluster
 [preflight] This might take a minute or two, depending on the speed of your internet connection
 [preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
@@ -692,19 +824,19 @@ kubeadm init \
 [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
 [kubelet-start] Activating the kubelet service
 [certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "front-proxy-ca" certificate and key
+[certs] Generating "front-proxy-client" certificate and key
 [certs] Generating "etcd/ca" certificate and key
-[certs] Generating "etcd/server" certificate and key
-[certs] etcd/server serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
 [certs] Generating "etcd/healthcheck-client" certificate and key
 [certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "etcd/server" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
 [certs] Generating "etcd/peer" certificate and key
 [certs] etcd/peer serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
 [certs] Generating "ca" certificate and key
-[certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [kube-jn00 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 192.168.2.11]
 [certs] Generating "apiserver-kubelet-client" certificate and key
-[certs] Generating "front-proxy-ca" certificate and key
-[certs] Generating "front-proxy-client" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [kube-jn00 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.k8cluster.local] and IPs [10.96.0.1 192.168.2.11]
 [certs] Generating "sa" key and public key
 [kubeconfig] Using kubeconfig folder "/etc/kubernetes"
 [kubeconfig] Writing "admin.conf" kubeconfig file
@@ -718,13 +850,13 @@ kubeadm init \
 [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
 [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
 [kubelet-check] Initial timeout of 40s passed.
-[apiclient] All control plane components are healthy after 92.017131 seconds
+[apiclient] All control plane components are healthy after 72.514103 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
 [kubelet] Creating a ConfigMap "kubelet-config-1.15" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Skipping phase. Please see --upload-certs
 [mark-control-plane] Marking the node kube-jn00 as control-plane by adding the label "node-role.kubernetes.io/master=''"
 [mark-control-plane] Marking the node kube-jn00 as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
-[bootstrap-token] Using token: 6xbz2z.dnp2zw1jaque1a1e
+[bootstrap-token] Using token: bxgzvr.fijfbuotjonhftox
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
 [bootstrap-token] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
@@ -747,55 +879,44 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 192.168.2.11:6443 --token 6xbz2z.dnp2zw1jaque1a1e \
-    --discovery-token-ca-cert-hash sha256:35837b583faee0dd076dc6bc98835ece9f93a05eb61545c1a1c8dd6a6e1d0d9d
+kubeadm join 192.168.2.11:6443 --token bxgzvr.fijfbuotjonhftox \
+    --discovery-token-ca-cert-hash sha256:812c3044322a616b892fee34828458028d52bf99767f2e7c3ca035586c4d11f2
 ```
 
-
-
-#### Set Master
-
+##### On MASTER:
+To start using your cluster, you need to run the following as a regular user:
 ```sh
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 export KUBECONFIG=$HOME/.kube/config
 echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
-
 ```
 
+##### On WORKER, as **_`ROOT`_**:
 ```sh
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-export KUBECONFIG=$HOME/.kube/config
-echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
-
+kubeadm join 192.168.2.11:6443 --v=2 --token bxgzvr.fijfbuotjonhftox \
+    --discovery-token-ca-cert-hash sha256:812c3044322a616b892fee34828458028d52bf99767f2e7c3ca035586c4d11f2
 ```
 
-* Pod Networking via `Calico`(used by Google)
-```sh
-wget https://docs.projectcalico.org/v3.9/manifests/calico.yaml
-vim calico.yaml
 
-```
+##### Pod Networking via `Calico`(used by Google)
+
+`192.168.0.0/16` -> `10.100.0.0/16`
 
 ```yaml
 - name: CALICO_IPV4POOL_CIDR
   value: "10.100.0.0/16"
 ```
 
-
 ```sh
-kubectl apply -f ./calico.yaml
+wget https://docs.projectcalico.org/v3.9/manifests/calico.yaml -O calico.yaml
+sed -i -e 's?192.168.0.0/16?10.100.0.0/16?g' calico.yaml
+kubectl apply -f calico.yaml
 
-wget https://docs.projectcalico.org/v3.9/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calicoctl.yaml
-kubectl apply -f ./calicoctl.yaml
+```
 
-sudo vim /etc/bash.bashrc
-alias calicoctl="kubectl exec -i -n kube-system calicoctl /calicoctl -- "
-
-
+```ascii
 configmap/calico-config created
 customresourcedefinition.apiextensions.k8s.io/felixconfigurations.crd.projectcalico.org created
 customresourcedefinition.apiextensions.k8s.io/ipamblocks.crd.projectcalico.org created
@@ -815,56 +936,51 @@ clusterrole.rbac.authorization.k8s.io/calico-kube-controllers created
 clusterrolebinding.rbac.authorization.k8s.io/calico-kube-controllers created
 clusterrole.rbac.authorization.k8s.io/calico-node created
 clusterrolebinding.rbac.authorization.k8s.io/calico-node created
-daemonset.extensions/calico-node created
+daemonset.apps/calico-node created
 serviceaccount/calico-node created
-deployment.extensions/calico-kube-controllers created
+deployment.apps/calico-kube-controllers created
 serviceaccount/calico-kube-controllers created
+
+
+sudo vim /etc/bash.bashrc
+alias calicoctl="kubectl exec -i -n kube-system calicoctl /calicoctl -- "
 ```
+
+#### Check it
 
 ```sh
 kubectl get nodes
 
-NAME           STATUS   ROLES    AGE     VERSION
-pydemia-jn00   Ready    master   2m36s   v1.15.10
+NAME        STATUS   ROLES    AGE     VERSION
+kube-jn00   Ready    master   4m49s   v1.15.10
+kube-jn01   Ready    <none>   103s    v1.15.10
+kube-jn02   Ready    <none>   85s     v1.15.10
+kube-jn03   Ready    <none>   83s     v1.15.10
 ```
 
+* Label it:
 ```sh
-watch kubectl get pods --all-namespaces
-
+kubectl label node kube-jn01 node-role.kubernetes.io/worker=worker
+kubectl label node kube-jn02 node-role.kubernetes.io/worker=worker
+kubectl label node kube-jn03 node-role.kubernetes.io/worker=worker
 ```
 
-#### Set Nodes
+  - Add a label: `kubectl label node <node name> node-role.kubernetes.io/<role name>=<key - (any name)>`
+  - Remove a label: `kubectl label node <node name> node-role.kubernetes.io/<role name>-`
 
-AS `ROOT`:
-```sh
-kubeadm join 192.168.2.11:6443 --token vdtl8i.ilk45ovj00xussa5 \
-    --discovery-token-ca-cert-hash sha256:dec491861bdf757dee5fa0c892e87f58674cbb62cfcd0dac77b4db9847f6866e
-
-```
-
-
-#### Check
-
-```sh
-kubectl label node pydemia-jn01 node-role.kubernetes.io/worker=worker
-kubectl label node pydemia-jn02 node-role.kubernetes.io/worker=worker
-kubectl label node pydemia-jn03 node-role.kubernetes.io/worker=worker
-```
-
+* Check it Again:
 ```sh
 kubectl get nodes
 
-NAME           STATUS   ROLES    AGE   VERSION
-pydemia-jn00   Ready    master   37m   v1.15.10
-pydemia-jn01   Ready    worker   24m   v1.15.10
-pydemia-jn02   Ready    worker   24m   v1.15.10
-pydemia-jn03   Ready    worker   23m   v1.15.10
-
+NAME        STATUS   ROLES    AGE     VERSION
+kube-jn00   Ready    master   10m     v1.15.10
+kube-jn01   Ready    worker   7m49s   v1.15.10
+kube-jn02   Ready    worker   7m31s   v1.15.10
+kube-jn03   Ready    worker   7m29s   v1.15.10
 ```
 
 ```sh
 watch kubectl get pods --all-namespaces
-
 ```
 
 
@@ -873,6 +989,81 @@ If needed:
 kubeadm reset -f
 ```
 
+### Error
+
+```sh
+kubectl get endpoints kubernetes
+
+NAME         ENDPOINTS           AGE
+kubernetes   192.168.2.11:6443   43m
+```
+
+```sh
+curl https://10.96.0.1:443/version
+
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+root@kube-jn01:/home/pydemia# curl https://10.96.0.1:443/version
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+```
+
+kubectl -n kube-system get pods
+kubectl -n kube-system logs coredns-5d4dd4b4db-7nvb9
+
+iptables -P FORWARD ACCEPT
+
+
+wget https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml -O calicoctl-etcd.yaml
+sed -i -e 's?192.168.0.0/16?10.100.0.0/16?g' calicoctl-etcd.yaml
+kubectl apply -f calico.yaml
+
+
+kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml
+kubectl exec -ti -n kube-system calicoctl -- /calicoctl get profiles -o wide
+
+
+#### Calico Setting
+
+```sh
+kubectl get pods --all-namespaces
+
+NAMESPACE     NAME                                       READY   STATUS             RESTARTS   AGE
+kube-system   calico-kube-controllers-56cd854695-twxwt   0/1     CrashLoopBackOff   6          12m
+kube-system   calico-node-gsmjm                          0/1     Running            0          12m
+kube-system   calico-node-h2p8x                          0/1     Running            0          12m
+kube-system   calico-node-s2q8z                          0/1     Running            0          12m
+kube-system   calico-node-t79ct                          0/1     Running            0          12m
+kube-system   coredns-5d4dd4b4db-7nvb9                   0/1     Running            6          15m
+kube-system   coredns-5d4dd4b4db-sk4ng                   0/1     Running            6          15m
+kube-system   etcd-kube-jn00                             1/1     Running            0          15m
+kube-system   kube-apiserver-kube-jn00                   1/1     Running            0          14m
+kube-system   kube-controller-manager-kube-jn00          1/1     Running            1          14m
+kube-system   kube-proxy-d8nhd                           1/1     Running            0          15m
+kube-system   kube-proxy-fz9x4                           1/1     Running            0          12m
+kube-system   kube-proxy-jp7cl                           1/1     Running            0          12m
+kube-system   kube-proxy-mr9h4                           1/1     Running            0          12m
+kube-system   kube-scheduler-kube-jn00                   1/1     Running            1          14m
+```
+
+```sh
+kubectl logs -n kube-system calico-kube-controllers-56cd854695-twxwt
+
+2020-05-02 21:48:40.805 [INFO][1] main.go 87: Loaded configuration from environment config=&config.Config{LogLevel:"info", ReconcilerPeriod:"5m", CompactionPeriod:"10m", EnabledControllers:"node", WorkloadEndpointWorkers:1, ProfileWorkers:1, PolicyWorkers:1, NodeWorkers:1, Kubeconfig:"", HealthEnabled:true, SyncNodeLabels:true, DatastoreType:"kubernetes"}
+2020-05-02 21:48:40.809 [INFO][1] k8s.go 228: Using Calico IPAM
+W0502 21:48:40.810016       1 client_config.go:541] Neither --kubeconfig nor --master was specified.  Using the inClusterConfig.  This might not work.
+2020-05-02 21:48:40.812 [INFO][1] main.go 108: Ensuring Calico datastore is initialized
+2020-05-02 21:48:50.813 [ERROR][1] client.go 255: Error getting cluster information config ClusterInformation="default" error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
+2020-05-02 21:48:50.813 [FATAL][1] main.go 113: Failed to initialize Calico datastore error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
+```
 
 #### Test
 
