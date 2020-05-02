@@ -1066,21 +1066,8 @@ kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
 
 #### Test
 
-```sh
-vim gpu-test.yml
-```
-
-```yml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: devicequery
-spec:
-  containers:
-    - name: nvidia
-      image: pydemia/nvidia-jn-devicequery:r32.4.2
-      command: [ "./deviceQuery" ]
-```
+If needed: `docker login` first.
+Then: `$HOME/.docker/config.json`
 
 ```sh
 echo '
@@ -1099,6 +1086,22 @@ spec:
 kubectl apply -f gpu-test.yml
 ```
 
+```sh
+echo '
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devicequery
+spec:
+  containers:
+    - name: nvidia
+      imagePullPolicy: IfNotPresent
+      image: pydemia/nvidia-jn-devicequery:r32.4.2
+      command: [ "./deviceQuery" ]
+' | tee ~/gpu-test.yml
+
+kubectl apply -f gpu-test.yml
+```
 
 ```sh
 kubectl apply -f gpu-test.yml
@@ -1129,6 +1132,44 @@ kube-system   kube-proxy-zrjg6                           1/1     Running        
 kube-system   kube-scheduler-kube-jn00                   1/1     Running                      0          15m
 ```
 
+
+### Docker Registry Authentication
+```sh
+kubectl create secret docker-registry docker-registry-login \
+  --docker-server=<SERVER>:<PORT> \
+  --docker-username=<USERNAME> \
+  --docker-password=<PASSWORD> \
+  --docker-email=pydemia@gmail.com \
+  --namespace=default
+
+secret/docker-registry-login created
+
+kubectl get secrets
+
+```
+echo '
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devicequery
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+        - name: nvidia
+          imagePullPolicy: IfNotPresent
+          image: pydemia/nvidia-jn-devicequery:r32.4.2
+          command: [ "./deviceQuery" ]
+      imagePullSecrets:
+        - name: docker-registry-login
+      restartPolicy: Never
+
+' | tee ~/gpu-test.yml
+
+kubectl apply -f gpu-test.yml
+
+##
 
 
 ```sh
