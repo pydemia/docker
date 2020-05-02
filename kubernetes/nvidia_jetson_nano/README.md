@@ -554,6 +554,73 @@ pydemia@kube-jn00:~$ ntpq -c lpeer
 +zero.gotroot.ca 214.176.184.39   2 u   29   64  377  155.720   13.616  10.911
 ```
 
+#### Port allocation
+From <https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-networking.md>
+
+The information below describes a minimum set of port allocations used by Kubernetes components. Some of these allocations will be optional depending on the deployment (e.g. if flannel or Calico is being used). Additionally, there are likely additional ports a deployer will need to open on their infrastructure (e.g. 22/ssh).
+
+Master Node Inbound
+
+| Protocol | Port Range | Source                                    | Purpose                |
+-----------|------------|-------------------------------------------|------------------------|
+| TCP      | 443        | Worker Nodes, API Requests, and End-Users | Kubernetes API server. |
+| UDP      | 8285       | Master & Worker Nodes                   | flannel overlay network - *udp backend*. This is the default network configuration (only required if using flannel) |
+| UDP      | 8472       | Master & Worker Nodes                   | flannel overlay network - *vxlan backend* (only required if using flannel) |
+
+Worker Node Inbound
+
+| Protocol | Port Range  | Source                         | Purpose                                                                |
+-----------|-------------|--------------------------------|------------------------------------------------------------------------|
+| TCP      | 10250       | Master Nodes                   | Worker node Kubelet API for exec and logs.                                  |
+| TCP      | 10255       | Heapster                       | Worker node read-only Kubelet API.                                  |
+| TCP      | 30000-32767 | External Application Consumers | Default port range for [external service][external-service] ports. Typically, these ports would need to be exposed to external load-balancers, or other external consumers of the application itself. |
+| TCP      | ALL         | Master & Worker Nodes          | Intra-cluster communication (unnecessary if `vxlan` is used for networking)           |
+| UDP      | 8285        | Master & Worker Nodes                   | flannel overlay network - *udp backend*. This is the default network configuration (only required if using flannel) |
+| UDP      | 8472        | Master & Worker Nodes                   | flannel overlay network - *vxlan backend* (only required if using flannel) |
+| TCP      | 179         | Worker Nodes                   | Calico BGP network (only required if the BGP backend is used) |
+
+etcd Node Inbound
+
+| Protocol | Port Range | Source        | Purpose                                                  |
+-----------|------------|---------------|----------------------------------------------------------|
+| TCP      | 2379-2380  | Master Nodes  | etcd server client API                                   |
+| TCP      | 2379-2380  | Worker Nodes  | etcd server client API (only required if using flannel or Calico). |
+
+
+#### Add Kubernetes Repository & Install Kubernetes on all resources
+
+##### Add repository: Kubernetes
+```sh
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl && \
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+```
+
+##### Install `kubeadm`
+
+```sh
+sudo apt list -a <package name>
+```
+
+```sh
+sudo apt-get update && \
+sudo apt-get install -y \
+  kubelet=1.15.10-00 \
+  kubeadm=1.15.10-00 \
+  kubectl=1.15.10-00 \
+  kubernetes-cni=0.7.5-00 \
+  --allow-downgrades \
+  --allow-change-held-packages
+```
+
+Fix kubernetes versions:
+```sh
+sudo apt-mark hold kubelet kubeadm kubectl kubernetes-cni
+```
+
+
 
 #### (Optional) Static IP Addressing
 * Static IP addressing  
@@ -589,65 +656,35 @@ echo $HOSTNAME
 ```
 
 
-
-```sh
-sudo apt-get update && sudo apt-get install -y apt-transport-https curl
-
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
-EOF
-sudo apt-get update
-
-#apt list -a kubeadm
-sudo apt-get install -y kubelet=1.15.10-00 kubeadm=1.15.10-00 kubectl=1.15.10-00 --allow-downgrades --allow-change-held-packages
-sudo apt-mark hold kubelet kubeadm kubectl
-
-```
-
-
-### Configuring the master node
+### Configuring the master
 
 ```sh
 sudo vim /etc/bash.bashrc
 ```
-
-As `ROOT`:
 ```sh
+echo '
 export API_ADDR="192.168.2.11"  # Master Server external IP
-export DNS_DOMAIN="k8s.local"
+export DNS_DOMAIN="cluster.local"
 export POD_NET="10.100.0.0/16"   # k8s cluster POD Network CIDR
-```
-
-For chaining the bridged network traffic to `iptables`:
-
-```sh
-sysctl net.bridge.bridge-nf-call-iptables=1
-
-vim /etc/sysctl.conf
-
-net.bridge.bridge-nf-call-iptables=1
-net.bridge.bridge-nf-call-ip6tables=1
-net.netfilter.nf_conntrack_max = 786432
-
+' | sudo tee -a /etc/bash.bashrc
 ```
 
 
 
+**_As `ROOT`_**:
 ```sh
 kubeadm init \
- --pod-network-cidr=${POD_NET} \
  --apiserver-advertise-address ${API_ADDR} \
  --service-dns-domain "${DNS_DOMAIN}" \
+ --pod-network-cidr=${POD_NET} \
  --kubernetes-version "1.15.10"
- 
 ```
 
-
-```txt
-
+```ascii
 [init] Using Kubernetes version: v1.15.10
 [preflight] Running pre-flight checks
+        [WARNING Service-Docker]: docker service is not enabled, please run 'systemctl enable docker.service'
+        [WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Please follow the guide at https://kubernetes.io/docs/setup/cri/
 [preflight] Pulling images required for setting up a Kubernetes cluster
 [preflight] This might take a minute or two, depending on the speed of your internet connection
 [preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
@@ -655,17 +692,19 @@ kubeadm init \
 [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
 [kubelet-start] Activating the kubelet service
 [certs] Using certificateDir folder "/etc/kubernetes/pki"
-[certs] Generating "ca" certificate and key
-[certs] Generating "apiserver-kubelet-client" certificate and key
-[certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [pydemia-jn00 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.k8s.local] and IPs [10.96.0.1 192.168.2.11]
-[certs] Generating "front-proxy-ca" certificate and key
-[certs] Generating "front-proxy-client" certificate and key
 [certs] Generating "etcd/ca" certificate and key
 [certs] Generating "etcd/server" certificate and key
-[certs] etcd/server serving cert is signed for DNS names [pydemia-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1] [certs] Generating "etcd/peer" certificate and key
-[certs] etcd/peer serving cert is signed for DNS names [pydemia-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]   [certs] Generating "etcd/healthcheck-client" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
 [certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [kube-jn00 localhost] and IPs [192.168.2.11 127.0.0.1 ::1]
+[certs] Generating "ca" certificate and key
+[certs] Generating "apiserver" certificate and key
+[certs] apiserver serving cert is signed for DNS names [kube-jn00 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 192.168.2.11]
+[certs] Generating "apiserver-kubelet-client" certificate and key
+[certs] Generating "front-proxy-ca" certificate and key
+[certs] Generating "front-proxy-client" certificate and key
 [certs] Generating "sa" key and public key
 [kubeconfig] Using kubeconfig folder "/etc/kubernetes"
 [kubeconfig] Writing "admin.conf" kubeconfig file
@@ -679,13 +718,13 @@ kubeadm init \
 [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
 [wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
 [kubelet-check] Initial timeout of 40s passed.
-[apiclient] All control plane components are healthy after 61.562702 seconds
+[apiclient] All control plane components are healthy after 92.017131 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
 [kubelet] Creating a ConfigMap "kubelet-config-1.15" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Skipping phase. Please see --upload-certs
-[mark-control-plane] Marking the node pydemia-jn00 as control-plane by adding the label "node-role.kubernetes.io/master=''"
-[mark-control-plane] Marking the node pydemia-jn00 as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
-[bootstrap-token] Using token: eh062q.qi5w233jg8fqhck7
+[mark-control-plane] Marking the node kube-jn00 as control-plane by adding the label "node-role.kubernetes.io/master=''"
+[mark-control-plane] Marking the node kube-jn00 as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
+[bootstrap-token] Using token: 6xbz2z.dnp2zw1jaque1a1e
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
 [bootstrap-token] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
@@ -708,13 +747,22 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 192.168.2.11:6443 --token eh062q.qi5w233jg8fqhck7 \
-    --discovery-token-ca-cert-hash sha256:e41cf058852c7f3b46ae0d9be2d6ab1cc0005c5702da0601479851209b195f68
-
+kubeadm join 192.168.2.11:6443 --token 6xbz2z.dnp2zw1jaque1a1e \
+    --discovery-token-ca-cert-hash sha256:35837b583faee0dd076dc6bc98835ece9f93a05eb61545c1a1c8dd6a6e1d0d9d
 ```
 
 
+
 #### Set Master
+
+```sh
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+export KUBECONFIG=$HOME/.kube/config
+echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
+
+```
 
 ```sh
 mkdir -p $HOME/.kube
