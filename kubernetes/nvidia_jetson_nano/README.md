@@ -166,6 +166,11 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
 ### Docker Setting
 
+Check docker version:
+`docker --version`
+
+#### If `docker < 18.09`(which is not in `r32.4.2`):
+
 ```sh
 sudo apt-get remove docker docker-engine docker.io containerd runc -y
 
@@ -203,102 +208,155 @@ sudo apt-get install -y \
 
 ```
 
-#### Restart
-
-
-```sh
-sudo shutdown -r now
-```
-
-
-```sh
-sudo sysctl -w vm.swappiness=10
-#sudo swapoff -a
-sudo systemctl mask dev-sdXX.swap #mask, unmask
-```
-
-* Set the NVidia runtime as a default runtime in Docker. For this edit /etc/docker/daemon.json file, so it looks like this:
-
-```sh
-sudo tee /etc/docker/daemon.json << EOF
-{
-  "default-runtime": "nvidia",
-  "runtimes": {
-    "nvidia": {
-      "path": "nvidia-container-runtime",
-      "runtimeArgs": []
-    }
-  },
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
-}
-
-EOF
-
-```
-
-
-> Among the settings presented here, the one above is very, very, very crucial.
-> You will experience a lot of issues if you fail to set this correctly.
-> For details on why this is needed see for example here:
-> https://github.com/NVIDIA/nvidia-docker/wiki/Advanced-topics#default-runtime.
-> By changing the default runtime,
-> you are sure that every Docker command and every Docker-based tool will be allowed to access the GPU.
-
-
-* Update all packages you have
-```sh
-#sudo apt-get update
-#sudo apt-get dist-upgrade -y
-
-```
 
 * Set a group `docker`   
 Add current user to docker group to use docker command without sudo, following this guide: https://docs.docker.com/install/linux/linux-postinstall/. The required commands are following:
 ```sh
-sudo groupadd docker
+sudo groupadd docker # already exists in `r32.4.2`.
 sudo usermod -aG docker $USER
-newgrp docker
+newgrp docker  # to change the current group ID (GID) during a login session.
+```
+
+* Set the NVidia runtime as a default runtime in Docker.
+
+Default:
+```sh
+cat /etc/docker/daemon.json
+{
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+}
+```
+
+change it to:
+```sh
+sudo tee /etc/docker/daemon.json << EOF
+{
+    "default-runtime": "nvidia",
+    "runtimes": {
+        "nvidia": {
+            "path": "nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "100m"
+    },
+    "storage-driver": "overlay2"
+}
+
+EOF
+```
+
+* <https://github.com/NVIDIA/nvidia-docker/wiki/Advanced-topics#default-runtime>
+* <https://kubernetes.io/docs/setup/production-environment/#cgroup-drivers>
+* <https://kubernetes.io/ko/docs/setup/production-environment/#cgroup-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84>
+
+* Docker Storage Drivers (<https://docs.docker.com/storage/storagedriver/select-storage-driver/>)
+| Union File System(Technology) | Storage driver name |
+| :---------------------------- | :------------------ |
+| OverlayFS	| `overlay` or `overlay2` |
+| AUFS	| `aufs` |
+| Btrfs	| `btrfs` |
+| Device Mapper	| `devicemapper` |
+| VFS	| `vfs` |
+| ZFS	| `zfs` |
+
+
+> By changing the default runtime,
+> you are sure that every Docker command and every Docker-based tool will be **_allowed to access the GPU_**.
+
+* Set NVIDIA
+```sh
+ls /usr/local |grep cuda
+#----------#
+lrwxrwxrwx  1 root root    9 Apr 19 11:57 cuda -> cuda-10.2
+drwxr-xr-x 12 root root 4096 Apr 19 11:57 cuda-10.2
+```
+
+Set ENV in `/etc/bash.bashrc` & `/etc/profile`
+
+```sh
+echo '
+# CUDA PATH
+export CUDA_HOME="/usr/local/cuda-10.2" # cuda -> cuda-10.2
+export PATH="${CUDA_HOME}/bin${PATH:+:${PATH}}"
+export LD_LIBRARY_PATH="${CUDA_HOME}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export LD_LIBRARY_PATH="${CUDA_HOME}/include${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}${CUDA_HOME}/extras/CUPTI/lib64"
+' | sudo tee -a /etc/bash.bashrc > /dev/null
+
+echo '
+# CUDA PATH
+export CUDA_HOME="/usr/local/cuda-10.2" # cuda -> cuda-10.2
+export PATH="${CUDA_HOME}/bin${PATH:+:${PATH}}"
+export LD_LIBRARY_PATH="${CUDA_HOME}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export LD_LIBRARY_PATH="${CUDA_HOME}/include${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}${CUDA_HOME}/extras/CUPTI/lib64"
+' | sudo tee -a /etc/profile > /dev/null
 
 ```
+
+* Check NVIDIA Settings
+
+```sh
+sudo dpkg --get-selections | grep nvidia
+#-------------------------------------------#
+libnvidia-container-tools                       install
+libnvidia-container0:arm64                      install
+nvidia-container-csv-cuda                       install
+nvidia-container-csv-cudnn                      install
+nvidia-container-csv-tensorrt                   install
+nvidia-container-csv-visionworks                install
+nvidia-container-runtime                        install
+nvidia-container-toolkit                        install
+nvidia-docker2                                  install
+nvidia-l4t-3d-core                              install
+nvidia-l4t-apt-source                           install
+nvidia-l4t-bootloader                           install
+nvidia-l4t-camera                               install
+nvidia-l4t-configs                              install
+nvidia-l4t-core                                 install
+nvidia-l4t-cuda                                 install
+nvidia-l4t-firmware                             install
+nvidia-l4t-graphics-demos                       install
+nvidia-l4t-gstreamer                            install
+nvidia-l4t-init                                 install
+nvidia-l4t-initrd                               install
+nvidia-l4t-jetson-io                            install
+nvidia-l4t-jetson-multimedia-api                install
+nvidia-l4t-kernel                               install
+nvidia-l4t-kernel-dtbs                          install
+nvidia-l4t-kernel-headers                       install
+nvidia-l4t-multimedia                           install
+nvidia-l4t-multimedia-utils                     install
+nvidia-l4t-oem-config                           install
+nvidia-l4t-tools                                install
+nvidia-l4t-wayland                              install
+nvidia-l4t-weston                               install
+nvidia-l4t-x11                                  install
+nvidia-l4t-xusb-firmware                        install
+```
+
+```sh
+sudo docker info | grep nvidia
+#-----------------------------#
+Runtimes: nvidia runc
+```
+
 
 * Reboot
 ```sh
 sudo shutdown -r now
 ```
 
-* Set NVIDIA
-
-```sh
-#sudo tee -a /etc/bash.bashrc > /dev/null <<EOT
-
-#export PATH="${PATH}:/usr/local/cuda/bin"
-#export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/cuda/lib64"
-
-#EOT
-
-```
-
-
-```sh
-sudo vim /etc/bash.bashrc
-```
-
-```sh
-export PATH="${PATH}:/usr/local/cuda/bin"
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/cuda/lib64"
-
-```
-
-```sh
-sudo dpkg --get-selections | grep nvidia
-sudo docker info | grep nvidia
-```
-
+### Test Docker GPU support
 
 * Building CUDA in Containers on Jetson
 
@@ -382,8 +440,6 @@ Result = PASS
 ---------------------------------------------------------------
 
 ```
-
-### Test Docker GPU support
 
 
 * Test a Docker image
