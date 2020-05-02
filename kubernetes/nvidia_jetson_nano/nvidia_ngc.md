@@ -91,3 +91,26 @@ rm `which ngc` && hash -d ngc
 ```
 
 
+### API Key
+
+API Information
+Generate your own API key to use the NGC service through the Docker client. Anyone with this API Key has access to all services, actions, and resources on your behalf.
+
+Click Generate API Key to create your own API Key. If you have forgotten or lost your API Key, you can come back to this page to create a new one at any time.
+
+* NGC CLI
+```sh
+ngc config set
+Enter API key [no-apikey]. Choices: [<VALID_APIKEY>, 'no-apikey']:
+Enter CLI output format type [ascii]. Choices: [ascii, csv, json]:
+Successfully saved NGC configuration to /home/pydemia/.ngc/config
+```
+
+* Docker
+For the username, **_enter '$oauthtoken' exactly as shown._** It is a special authentication token for all users.
+```sh
+docker login nvcr.io
+
+Username: $oauthtoken
+Password: <Your Key>
+```
