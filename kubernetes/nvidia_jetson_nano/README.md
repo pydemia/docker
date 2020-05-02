@@ -4,6 +4,8 @@
 
 ### Boot-up
 
+*Renew the source image: `nv-jetson-nano-sd-card-image-r32.4.2.img`
+
 * [Get an Image(>= 4.2.1)](https://developer.nvidia.com/embedded/jetpack)
 * [First Boot](https://developer.nvidia.com/embedded/learn/get-started-jetson-nano-devkit#write)
 
@@ -27,9 +29,69 @@ Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
 192.168.0.0     0.0.0.0         255.255.0.0     U         0 0          0 eth0
 ```
 
+#### Hostname
+
+`/etc/hosts`
 ```sh
-cat ~/.ssh/pydemia-server-surface-rsa-key.pub | ssh pydemia@192.168.2.12 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat > ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+# Kubernetes cluster:
+192.168.2.11   kube-jn00
+192.168.2.12   kube-jn01
+192.168.2.13   kube-jn02
+192.168.2.14   kube-jn03
 ```
+
+#### (Optional)`ssh-key`
+
+
+`~/.ssh/config`
+```sh
+Host kb00
+ HostName kube-jn00
+ User pydemia
+ IdentityFile ~/.ssh/pydemia-kubecluster-key
+
+Host kb01
+ HostName kube-jn01
+ User pydemia
+ IdentityFile ~/.ssh/pydemia-kubecluster-key
+
+Host kb02
+ HostName kube-jn02
+ User pydemia
+ IdentityFile ~/.ssh/pydemia-kubecluster-key
+
+Host kb03
+ HostName kube-jn03
+ User pydemia
+ IdentityFile ~/.ssh/pydemia-kubecluster-key
+```
+
+
+```sh
+ssh-keygen -f pydemia-kubecluster-key
+ssh-keygen -f pydemia-kubecluster-key.pub -m 'PEM' -e > pydemia-kubecluster-key.pem
+
+ssh-copy-id -i ~/.ssh/pydemia-kubecluster-key.pub kube-jn00
+ssh-copy-id -i ~/.ssh/pydemia-kubecluster-key.pub kube-jn01
+ssh-copy-id -i ~/.ssh/pydemia-kubecluster-key.pub kube-jn02
+ssh-copy-id -i ~/.ssh/pydemia-kubecluster-key.pub kube-jn03
+```
+
+which is equivalent:
+```sh
+cat ~/.ssh/pydemia-kubecluster-key.pub | ssh pydemia@192.168.2.11 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat > ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+
+
+Just in case of re-establishing the authenticity of known-hosts:
+```sh
+ssh-keygen -f "/home/pydemia/.ssh/known_hosts" -R 192.168.2.11
+ssh-keygen -f "/home/pydemia/.ssh/known_hosts" -R 192.168.2.12
+ssh-keygen -f "/home/pydemia/.ssh/known_hosts" -R 192.168.2.13
+ssh-keygen -f "/home/pydemia/.ssh/known_hosts" -R 192.168.2.14
+```
+
+
 
 ### System Basic Setting
 
