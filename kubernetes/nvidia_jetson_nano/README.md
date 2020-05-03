@@ -2,6 +2,7 @@
 
 * Master: 1  
 * Worker: 3  
+* NFS   : 1
 
 ## Table of Contents
 * [Prerequisite](#prerequisite)
