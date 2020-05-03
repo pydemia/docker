@@ -210,18 +210,20 @@ sudo apt-get install -y \
 
 
 * Set a group `docker`   
-Add current user to docker group to use docker command without sudo, following this guide: https://docs.docker.com/install/linux/linux-postinstall/. The required commands are following:
-```sh
+Add current user to docker group to use docker command without sudo, following this guide:  
+https://docs.docker.com/install/linux/linux-postinstall/.  
+The required commands are following:
+```bash
 sudo groupadd docker # already exists in `r32.4.2`.
 sudo usermod -aG docker $USER
 newgrp docker  # to change the current group ID (GID) during a login session.
 ```
 
-* Set the NVidia runtime as a default runtime in Docker.
+#### Set the `NVidia runtime` as a default runtime in Docker.
 
 Default:
-```sh
-cat /etc/docker/daemon.json
+`cat /etc/docker/daemon.json`
+```json
 {
     "runtimes": {
         "nvidia": {
@@ -254,9 +256,10 @@ sudo tee /etc/docker/daemon.json << EOF
 EOF
 ```
 
-* [github-NVIDIA default runtime](https://github.com/NVIDIA/nvidia-docker/wiki/Advanced-topics#default-runtime)
-* [kube-cgroup-drivers(ENG)](https://kubernetes.io/docs/setup/production-environment/#cgroup-drivers)
-* [kube-cgroup-drivers(KOR)](https://kubernetes.io/ko/docs/setup/production-environment/#cgroup-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84)
+* From
+  * [github-NVIDIA default runtime](https://github.com/NVIDIA/nvidia-docker/wiki/Advanced-topics#default-runtime)
+  * [kube-cgroup-drivers(ENG)](https://kubernetes.io/docs/setup/production-environment/#cgroup-drivers)
+  * [kube-cgroup-drivers(KOR)](https://kubernetes.io/ko/docs/setup/production-environment/#cgroup-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84)
 
 * [Docker Storage Drivers](https://docs.docker.com/storage/storagedriver/select-storage-driver/)  
 
@@ -269,11 +272,13 @@ EOF
 | VFS	| `vfs` |
 | ZFS	| `zfs` |
 
-
 > By changing the default runtime,
 > you are sure that every Docker command and every Docker-based tool will be **_allowed to access the GPU_**.
 
-* Set NVIDIA
+
+##### Set ENV in `/etc/bash.bashrc` & `/etc/profile`
+
+* Check `cuda version` installed
 ```sh
 ls /usr/local |grep cuda
 #----------#
@@ -281,9 +286,9 @@ lrwxrwxrwx  1 root root    9 Apr 19 11:57 cuda -> cuda-10.2
 drwxr-xr-x 12 root root 4096 Apr 19 11:57 cuda-10.2
 ```
 
-Set ENV in `/etc/bash.bashrc` & `/etc/profile`
+# Set Environment variables for `cuda`: (`/etc/bash.bashrc` and `/etc/profile`)
 
-```sh
+```bash
 echo '
 # CUDA PATH
 export CUDA_HOME="/usr/local/cuda-10.2" # cuda -> cuda-10.2
@@ -359,13 +364,14 @@ sudo shutdown -r now
 
 ### Test Docker GPU support
 
-<https://ngc.nvidia.com/catalog/containers>
-Base: `docker pull nvcr.io/nvidia/l4t-base:r32.4.2`
-ML: `docker pull nvcr.io/nvidia/l4t-ml:r32.4.2-py3`
-Tensorflow: `docker pull nvcr.io/nvidia/l4t-tensorflow:r32.4.2-tf1.15-py3`
-PyTorch: `docker pull nvcr.io/nvidia/l4t-pytorch:r32.4.2-pth1.5-py3`
+From <https://ngc.nvidia.com/catalog/containers>  
+* Base: `docker pull nvcr.io/nvidia/l4t-base:r32.4.2`
+* ML: `docker pull nvcr.io/nvidia/l4t-ml:r32.4.2-py3`
+* Tensorflow: `docker pull nvcr.io/nvidia/l4t-tensorflow:r32.4.2-tf1.15-py3`
+* PyTorch: `docker pull nvcr.io/nvidia/l4t-pytorch:r32.4.2-pth1.5-py3`
 
-* Building CUDA in Containers on Jetson (Master)
+
+#### Building CUDA in Containers on Jetson (Master)  
 Change base_image: `FROM nvcr.io/nvidia/l4t-base:r32.4 -> FROM nvcr.io/nvidia/l4t-base:r32.4.2
 
 ```sh
@@ -388,16 +394,18 @@ docker build . -t pydemia/nvidia-jn-devicequery:r32.4.2
 
 ```
 
-* Push it
+#### Push it
 ```sh
 docker login
 docker push pydemia/nvidia-jn-devicequery:r32.4.2
 ```
 
-* Run it
-Test a Docker image
-we are ready to test if Docker runs correctly and supports GPU.
-To make this easier, we created a dedicated Docker image with “deviceQuery” tool from the CUDA SDK which is used to query the GPU and present its capabilities. The command to run it is simple:
+#### Run it
+Test a Docker image.  
+we are ready to test if Docker runs correctly and supports GPU.  
+To make this easier, we created a dedicated Docker image with `deviceQuery` tool  
+from the CUDA SDK which is used to query the GPU and present its capabilities.  
+The command to run it is simple:
 ```diff
 -docker run --rm -it --runtime nvidia pydemia/nvidia-jn-devicequery:r32.4.2 ./deviceQuery
 +docker run --rm -it --runtime nvidia pydemia/nvidia-jn-devicequery:r32.4.2
@@ -468,7 +476,7 @@ sudo apt install -y ntp
 ```
 
 ##### On MASTER:
-Add the following to provide your current local time as a default.
+Add the following to provide your current local time as a default.  
 you should temporarily lose Internet connectivity:
 
 ```sh
@@ -485,9 +493,12 @@ sudo /etc/init.d/ntp restart
 
 ##### On WORKER:
 
-On all the remaining nodes in your cluster, set them up to sync clocks with the node which was designated as the main time server in the cluster.
+On all the remaining nodes in your cluster,  
+set them up to sync clocks with the node which was designated as the main time server in the cluster.
 
-*Declare the pool's domain name with a `pool` command (and not `server`)*
+* Declare the pool's domain name with a `pool` command (and not `server`)*
+
+`/etc/ntp.conf`
 ```diff
 -server <main time server> iburst
 +pool <main time server> iburst
@@ -495,7 +506,7 @@ On all the remaining nodes in your cluster, set them up to sync clocks with the 
 [pool Directive vs. server Lines](https://kb.meinbergglobal.com/kb/time_sync/ntp/configuration/ntp_pool_usage#pool_directive_vs_server_lines)
 
 
-**_Result_**
+`/etc/ntp.conf`:
 ```sh
 # Specify one or more NTP servers.
 server kube-jn00 iburst
@@ -531,7 +542,7 @@ pydemia@kube-jn01:~$ ntpq -c lpeer
 *kube-jn00       46.243.26.34     2 u    2   64    1    1.266  -27.718   0.774
 ```
 
-(Info) When running the same command on the main server at the same time:
+* (Info) When running the same command on the main server at the same time:
 ```sh
 pydemia@kube-jn00:~$ ntpq -c lpeer
      remote           refid      st t when poll reach   delay   offset  jitter
@@ -590,15 +601,14 @@ EOF
 
 #### Port allocation
 
-From <https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#check-required-ports>
+From [kube-check required ports](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#check-required-ports)  
+From [coreos-kube networking](https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-networking.md)
 
+The information below describes a minimum set of port allocations used by Kubernetes components.  
+Some of these allocations will be optional depending on the deployment (e.g. if `flannel` or `calico` is being used).  
+Additionally, there are likely additional ports a deployer will need to open on their infrastructure (e.g. `22/ssh`).
 
-
-From <https://github.com/coreos/coreos-kubernetes/blob/master/Documentation/kubernetes-networking.md>
-
-The information below describes a minimum set of port allocations used by Kubernetes components. Some of these allocations will be optional depending on the deployment (e.g. if flannel or Calico is being used). Additionally, there are likely additional ports a deployer will need to open on their infrastructure (e.g. 22/ssh).
-
-Master Node Inbound
+* Master Node Inbound
 
 | Protocol | Port Range | Source                                    | Purpose                |
 -----------|------------|-------------------------------------------|------------------------|
@@ -606,7 +616,7 @@ Master Node Inbound
 | UDP      | 8285       | Master & Worker Nodes                   | flannel overlay network - *udp backend*. This is the default network configuration (only required if using flannel) |
 | UDP      | 8472       | Master & Worker Nodes                   | flannel overlay network - *vxlan backend* (only required if using flannel) |
 
-Worker Node Inbound
+* Worker Node Inbound
 
 | Protocol | Port Range  | Source                         | Purpose                                                                |
 -----------|-------------|--------------------------------|------------------------------------------------------------------------|
@@ -618,7 +628,7 @@ Worker Node Inbound
 | UDP      | 8472        | Master & Worker Nodes                   | flannel overlay network - *vxlan backend* (only required if using flannel) |
 | TCP      | 179         | Worker Nodes                   | Calico BGP network (only required if the BGP backend is used) |
 
-etcd Node Inbound
+* `etcd` Node Inbound
 
 | Protocol | Port Range | Source        | Purpose                                                  |
 -----------|------------|---------------|----------------------------------------------------------|
@@ -628,13 +638,6 @@ etcd Node Inbound
 
 ##### Install `ufw`
 
-Just in case:
-```sh
-sudo systemctl stop firewalld
-sudo systemctl disable firewalld
-```
-
-In case of Ubuntu:
 ```sh
 sudo apt install -y ufw
 sudo ufw allow ssh
@@ -644,28 +647,29 @@ sudo systemctl enable ufw
 sudo systemctl start ufw
 ```
 
-In case of Error `ufw` failed with `ip6tables-restore: line 142 failed; Problem running '/etc/ufw/before6.rules'`
-It seems to be raised with ipv6, then:
-```sh
+In case of Error `ufw`, failed with
+  `ip6tables-restore: line 142 failed; Problem running '/etc/ufw/before6.rules'`.  
+It seems to be raised with `ipv6`, then:
+```bash
 sudo sed -i -e 's?IPV6=yes?IPV6=no?g' /etc/default/ufw
 sudo shutdown -r now
 ```
 Check it works:
-```sh
+```bash
 sudo systemctl status ufw
 ```
 
 
 ##### Master Node
 
-```sh
+```bash
 sudo ufw allow 6443,443,2379:2380,10250:10255/tcp
 sudo ufw allow 8285,8472/udp
 ```
 
 ##### Worker Node
 
-```sh
+```bash
 sudo ufw allow 10250:10255,30000:32767,179,2379:2380/tcp
 sudo ufw allow 8285,8472/udp
 ```
@@ -675,7 +679,7 @@ sudo ufw allow 8285,8472/udp
 ### Add Kubernetes Repository & Install Kubernetes on all resources
 
 #### Add repository: Kubernetes
-```sh
+```bash
 sudo apt-get update && sudo apt-get install -y apt-transport-https curl && \
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -685,11 +689,11 @@ EOF
 
 #### Install `kubeadm`
 
-```sh
+```bash
 sudo apt list -a <package name>
 ```
 
-```sh
+```bash
 sudo apt-get update && \
 sudo apt-get install -y \
   kubelet=1.15.10-00 \
@@ -785,7 +789,8 @@ kubeadm reset
 ```
 
 #### On MASTER:
-* for `flannel` as a cluster network interface(use Overaly Network Mechanism- linux bridge or ovs(L2)):
+* for `flannel` as a cluster network interface  
+(use Overaly Network Mechanism-linux bridge or ovs(L2)):
 ```sh
 echo '
 export API_ADDR="192.168.2.11"      # Master Server external IP
@@ -795,7 +800,8 @@ export POD_NET="10.244.0.0/16"    # k8s cluster POD Network CIDR
 ' | sudo tee -a /etc/bash.bashrc
 ```
 
-* for `calico` as a cluster network interface(use BGP routing protocol(L3)):
+* for `calico` as a cluster network interface  
+(use BGP routing protocol(L3)):
 ```sh
 echo '
 export API_ADDR="192.168.2.11"      # Master Server external IP
@@ -814,8 +820,11 @@ kubeadm init \
   --kubernetes-version "1.15.10"
 ```
 
-Note: this will autodetect the network interface to advertise the master on as the interface with the default gateway. If you want to use a different interface, specify `--apiserver-advertise-address <ip-address>` argument to `kubeadm
-init`.
+Note: this will autodetect the network interface to advertise the master on  
+as the interface with the default gateway.  
+If you want to use a different interface, specify `--apiserver-advertise-address <ip-address>` argument  
+to `kubeadm init`.  
+
 From <https://unofficial-kubernetes.readthedocs.io/en/latest/getting-started-guides/kubeadm/#24-initializing-your-master>
 
 ```ascii
@@ -906,17 +915,17 @@ kubeadm join 192.168.2.11:6443 --token pv28di.rcmr8u0gza8hw4ee \
 ### CNI Installation
 
 #### Pod Networking via `calico`(used by Google)
-**_CIDR Problem_ exists!_** You should use `--pot-network-cidr=192.168.x.x/x` for `calicoctl`!
+**_CIDR Problem_ exists!_** *You should use `--pot-network-cidr=192.168.x.x/x` for `calicoctl`!*
 
 `192.168.0.0/16` -> `192.168.99.0/24`
 
 > ```diff
-> - name: CALICO_IPV4POOL_CIDR
+> \- name: CALICO_IPV4POOL_CIDR
 > ---  value: "192.168.0.0/16"
 > +++  value: "192.168.99.0/24"
 > ```
 
-```sh
+```bash
 wget https://docs.projectcalico.org/v3.9/manifests/calico.yaml -O calico.yaml
 sed -i -e 's?192.168.0.0/16?192.168.99.0/24?g' calico.yaml
 kubectl apply -f calico.yaml
@@ -982,7 +991,7 @@ source /etc/bash.bashrc && source ~/.bashrc
 ```
 
 
-From <https://docs.projectcalico.org/getting-started/calicoctl/install#installing-calicoctl-as-a-kubernetes-pod>
+From [install-calicoctl-as-a-kube-pod](https://docs.projectcalico.org/getting-started/calicoctl/install#installing-calicoctl-as-a-kubernetes-pod)
 
 #### Pod Networking via `flannel`
 ```sh
@@ -1009,8 +1018,14 @@ kubectl label node kube-jn02 node-role.kubernetes.io/worker=worker
 kubectl label node kube-jn03 node-role.kubernetes.io/worker=worker
 ```
 
-  - Add a label: `kubectl label node <node name> node-role.kubernetes.io/<role name>=<key - (any name)>`
-  - Remove a label: `kubectl label node <node name> node-role.kubernetes.io/<role name>-`
+  - Add a label: 
+    ```bash
+    kubectl label node <node name> node-role.kubernetes.io/<role name>=<key - (any name)>
+    ```
+  - Remove a label:
+    ```bash
+    kubectl label node <node name> node-role.kubernetes.io/<role name>-
+    ```
 
 * Check it Again:
 ```sh
@@ -1027,6 +1042,10 @@ kube-jn03   Ready    worker   7m29s   v1.15.10
 watch kubectl get pods --all-namespaces
 ```
 
+
+```sh
+kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
+```
 
 If needed:
 ```sh
@@ -1088,11 +1107,11 @@ W0502 21:48:40.810016       1 client_config.go:541] Neither --kubeconfig nor --m
 2020-05-02 21:48:50.813 [FATAL][1] main.go 113: Failed to initialize Calico datastore error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
 ```
 
-kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
+
 
 #### Test
 
-If needed: `docker login` first.
+If needed: `docker login` first.  
 Then: `$HOME/.docker/config.json`
 
 
