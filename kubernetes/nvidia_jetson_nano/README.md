@@ -9,8 +9,25 @@ Worker: 3
   * Network Config(#network-config)
   * System Basic Settings(#system-basic-settings)
   * Docker Setting(#docker-setting)
-    * NVIDIA Runtime for Docker()
-* 
+    * NVIDIA Runtime for Docker(#nvidia-runtime-for-docker-set-the-nvidia-runtime-as-a-default-runtime-in-docker)
+  * Teset GPU on Docker(#test-gpu-on-docker)
+  * Kubernetes Setting(#kubernetes-setting)
+    * NTP(#ntp-time-server-sync)
+    * Docker on(#docker-service-on)
+    * Port Allocation & Firewall(#port-allocation)
+* Install Kubernetes(#install-kubernetes)
+  * Add Kubernetes Repository & Install Kubernetes on all resources(#add-kubernetes-repository--install-kubernetes-on-all-resources)
+  * Initialize a Kubernetes Cluster(#initialize-a-kubernetes-cluster)
+  * Install `cni`(#install-cni)
+    * Cluster Networking via `calico`(#cluster-networking-via-calicoused-by-google)
+    * `calicoctl` application as a pod(#calicoctl-application-as-a-pod)
+    * Cluster Networking via `flannel`(#cluster-networking-via-flannel)
+  * Check the cluster(#check-the-cluster)
+    * Calico Setting(#calico-setting)
+    * Test(#test)
+      * Docker Registry Authentication(#docker-registry-authentication)
+* Manage Kubernetes
+  * Dashboard
 
 ## Prerequisite
 
@@ -373,7 +390,7 @@ Runtimes: nvidia runc
 sudo shutdown -r now
 ```
 
-### Test Docker GPU support
+### Test GPU on Docker
 
 From <https://ngc.nvidia.com/catalog/containers>  
 * Base: `docker pull nvcr.io/nvidia/l4t-base:r32.4.2`
@@ -470,7 +487,7 @@ deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 10.2, CUDA Runtime Vers
 Result = PASS
 ```
 
-
+---
 ### Kubernetes Setting
 
 * Time server sync with `ntp`
@@ -685,6 +702,7 @@ sudo ufw allow 10250:10255,30000:32767,179,2379:2380/tcp
 sudo ufw allow 8285,8472/udp
 ```
 
+---
 ## Install Kubernetes
 
 ### Add Kubernetes Repository & Install Kubernetes on all resources
@@ -822,7 +840,7 @@ export POD_NET="192.168.99.0/24"    # k8s cluster POD Network CIDR
 ' | sudo tee -a /etc/bash.bashrc
 ```
 
-**_RUN THIS As `ROOT`_**:
+**_RUN THIS AS `ROOT`_**:
 ```sh
 kubeadm init \
   --apiserver-advertise-address "${API_ADDR}" \
@@ -917,16 +935,16 @@ export KUBECONFIG=$HOME/.kube/config
 echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
 ```
 
-#### On WORKER, as **_`ROOT`_**:
+#### On WORKER, AS **_`ROOT`_**:
 ```sh
 kubeadm join 192.168.2.11:6443 --token pv28di.rcmr8u0gza8hw4ee \
     --discovery-token-ca-cert-hash sha256:5e74fed69a819dba76978f1959651cc2e61599624061e5933b12e6f04a544e91
 ```
 
-### CNI Installation
+### Install `cni`
 
-#### Pod Networking via `calico`(used by Google)
-**_CIDR Problem_ exists!_** *You should use `--pot-network-cidr=192.168.x.x/x` for `calicoctl`!*
+#### Cluster Networking via `calico`(used by Google)
+**_CIDR Problem_ exists!_** *You should use `--pot-network-cidr=192.168.x.x/x` for `calico`!*
 
 `192.168.0.0/16` -> `192.168.99.0/24`
 
@@ -969,7 +987,7 @@ deployment.apps/calico-kube-controllers created
 serviceaccount/calico-kube-controllers created
 ```
 
-#### `calicoctl` applications as a pod:
+#### `calicoctl` application as a pod:
 
 In this article, `calicoctl version: v3.13.3` for now.
 `docker pull calico/ctl:v3.13.3`
@@ -1004,7 +1022,7 @@ source /etc/bash.bashrc && source ~/.bashrc
 
 From [install-calicoctl-as-a-kube-pod](https://docs.projectcalico.org/getting-started/calicoctl/install#installing-calicoctl-as-a-kubernetes-pod)
 
-#### Pod Networking via `flannel`
+#### Cluster Networking via `flannel`
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.11.0/Documentation/kube-flannel.yml
 ```
