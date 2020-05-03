@@ -1,6 +1,6 @@
 # Jetson Nano
 
-## Set-up
+## Prerequisite
 
 ### Boot-up
 
@@ -669,11 +669,11 @@ sudo ufw allow 10250:10255,30000:32767,179,2379:2380/tcp
 sudo ufw allow 8285,8472/udp
 ```
 
+## Install Kubernetes
 
+### Add Kubernetes Repository & Install Kubernetes on all resources
 
-#### Add Kubernetes Repository & Install Kubernetes on all resources
-
-##### Add repository: Kubernetes
+#### Add repository: Kubernetes
 ```sh
 sudo apt-get update && sudo apt-get install -y apt-transport-https curl && \
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
@@ -682,7 +682,7 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 ```
 
-##### Install `kubeadm`
+#### Install `kubeadm`
 
 ```sh
 sudo apt list -a <package name>
@@ -710,7 +710,7 @@ sudo apt-get purge kubeadm kubectl kubelet kubernetes-cni kube*
 sudo apt autoremove
 ```
 
-##### CRI Runtime
+#### (Optional) for `CRI` Runtime
 
 
 * For `containerd`
@@ -774,12 +774,17 @@ sudo vim /etc/hosts
 echo $HOSTNAME
 ```
 
+### Initialize a Kubernetes Cluster
 
-### Configuring the master
-
+If a cluster exists, Remove it by the following:
 ```sh
-sudo vim /etc/bash.bashrc
+rm -rf /etc/kubernetes
+rm -rf /var/lib/etcd
+kubeadm reset
 ```
+
+#### On MASTER:
+* for `flannel` as a cluster network interface(use Overaly Network Mechanism- linux bridge or ovs(L2)):
 ```sh
 echo '
 export API_ADDR="192.168.2.11"      # Master Server external IP
@@ -787,7 +792,10 @@ export DNS_DOMAIN="k8cluster.local" # default: "cluster.local"
 export POD_NET="10.244.0.0/16"    # k8s cluster POD Network CIDR
 # `POD_NET` for flannel: 10.244.0.0/16, calico: 192.168.0.0/16
 ' | sudo tee -a /etc/bash.bashrc
+```
 
+* for `calico` as a cluster network interface(use BGP routing protocol(L3)):
+```sh
 echo '
 export API_ADDR="192.168.2.11"      # Master Server external IP
 export DNS_DOMAIN="k8cluster.local" # default: "cluster.local"
@@ -796,19 +804,7 @@ export POD_NET="192.168.99.0/24"    # k8s cluster POD Network CIDR
 ' | sudo tee -a /etc/bash.bashrc
 ```
 
-
-### Initialize a Kubernetes Cluster
-
-#### On MASTER:
-
-```sh
-rm -rf /etc/kubernetes
-rm -rf /var/lib/etcd
-kubeadm reset
-```
-
-
-**_As `ROOT`_**:
+**_RUN THIS As `ROOT`_**:
 ```sh
 kubeadm init \
   --apiserver-advertise-address "${API_ADDR}" \
@@ -890,7 +886,7 @@ kubeadm join 192.168.2.11:6443 --token pv28di.rcmr8u0gza8hw4ee \
     --discovery-token-ca-cert-hash sha256:5e74fed69a819dba76978f1959651cc2e61599624061e5933b12e6f04a544e91
 ```
 
-##### On MASTER:
+#### On MASTER:
 To start using your cluster, you need to run the following as a regular user:
 ```sh
 mkdir -p $HOME/.kube
@@ -900,22 +896,24 @@ export KUBECONFIG=$HOME/.kube/config
 echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
 ```
 
-##### On WORKER, as **_`ROOT`_**:
+#### On WORKER, as **_`ROOT`_**:
 ```sh
 kubeadm join 192.168.2.11:6443 --token pv28di.rcmr8u0gza8hw4ee \
     --discovery-token-ca-cert-hash sha256:5e74fed69a819dba76978f1959651cc2e61599624061e5933b12e6f04a544e91
 ```
 
+### CNI Installation
 
-##### ~~Pod Networking via `calico`(used by Google)~~
-**_Because of `arm64` & CIDR Problem_**
+#### Pod Networking via `calico`(used by Google)
+**_CIDR Problem_ exists!_** You should use `--pot-network-cidr=192.168.x.x/x` for `calicoctl`!
 
 `192.168.0.0/16` -> `192.168.99.0/24`
 
-```yaml
-- name: CALICO_IPV4POOL_CIDR
-  value: "10.100.0.0/16"
-```
+> ```diff
+> - name: CALICO_IPV4POOL_CIDR
+> ---  value: "192.168.0.0/16"
+> +++  value: "192.168.99.0/24"
+> ```
 
 ```sh
 wget https://docs.projectcalico.org/v3.9/manifests/calico.yaml -O calico.yaml
@@ -923,6 +921,7 @@ sed -i -e 's?192.168.0.0/16?192.168.99.0/24?g' calico.yaml
 kubectl apply -f calico.yaml
 ```
 
+Messages:
 ```ascii
 configmap/calico-config created
 customresourcedefinition.apiextensions.k8s.io/felixconfigurations.crd.projectcalico.org created
@@ -949,22 +948,48 @@ deployment.apps/calico-kube-controllers created
 serviceaccount/calico-kube-controllers created
 ```
 
-* `calicoctl` applications as a pod:
-```sh
-kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml
+#### `calicoctl` applications as a pod:
 
+In this article, `calicoctl version: v3.13.3` for now.
+`docker pull calico/ctl:v3.13.3`
+
+  - `etcd`
+    ```sh
+    kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl-etcd.yaml
+    ```
+
+  - Kubernetes API datastore
+    ```sh
+     kubectl apply -f https://docs.projectcalico.org/manifests/calicoctl.yaml
+    ```
+
+You can then run commands using kubectl as shown below.
+```sh
 #kubectl exec -ti -n kube-system calicoctl -- /calicoctl get profiles -o wide
-sudo vim /etc/bash.bashrc
+```
+
+Create an `alias` as a command:
+```sh
 alias calicoctl="kubectl exec -i -n kube-system calicoctl /calicoctl -- "
 ```
 
-##### Pod Networking via `flannel`
+```sh
+echo '
+alias calicoctl="kubectl exec -i -n kube-system calicoctl /calicoctl -- "
+' | sudo tee -a /etc/bash.bashrc && \
+source /etc/bash.bashrc && source ~/.bashrc
+```
+
+
+From <https://docs.projectcalico.org/getting-started/calicoctl/install#installing-calicoctl-as-a-kubernetes-pod>
+
+#### Pod Networking via `flannel`
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.11.0/Documentation/kube-flannel.yml
 ```
 
 
-#### Check it
+### Check the cluster
 
 ```sh
 kubectl get nodes
@@ -1069,22 +1094,6 @@ kubectl get pods --namespace=kube-system -l k8s-app=kube-dns
 If needed: `docker login` first.
 Then: `$HOME/.docker/config.json`
 
-```sh
-echo '
-apiVersion: v1
-kind: Pod
-metadata:
-  name: devicequery
-spec:
-  containers:
-    - name: nvidia
-      imagePullPolicy: IfNotPresent
-      image: pydemia/nvidia-jn-devicequery:r32.4.2
-      command: [ "./deviceQuery" ]
-' | tee ~/gpu-test.yml
-
-kubectl apply -f gpu-test.yml
-```
 
 ```sh
 echo '
@@ -1133,7 +1142,7 @@ kube-system   kube-scheduler-kube-jn00                   1/1     Running        
 ```
 
 
-### Docker Registry Authentication
+##### Docker Registry Authentication
 ```sh
 kubectl create secret docker-registry docker-registry-login \
   --docker-server=<SERVER>:<PORT> \
@@ -1145,37 +1154,10 @@ kubectl create secret docker-registry docker-registry-login \
 secret/docker-registry-login created
 
 kubectl get secrets
-
-```
-echo '
-apiVersion: v1
-kind: Pod
-metadata:
-  name: devicequery
-spec:
-  ttlSecondsAfterFinished: 100
-  template:
-    spec:
-      containers:
-        - name: nvidia
-          imagePullPolicy: IfNotPresent
-          image: pydemia/nvidia-jn-devicequery:r32.4.2
-          command: [ "./deviceQuery" ]
-      imagePullSecrets:
-        - name: docker-registry-login
-      restartPolicy: Never
-
-' | tee ~/gpu-test.yml
-
-kubectl apply -f gpu-test.yml
-
-##
-
-
-```sh
-systemctl restart kubelet
 ```
 
+
+MARK HERE
 
 ### Dashboard
 
