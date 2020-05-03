@@ -1,4 +1,4 @@
-# Create a Kubernetes Cluster on NVIDIA Jetson Nano
+# Create a Kubernetes cluster on NVIDIA Jetson Nano
 
 Master: 1
 Worker: 3
