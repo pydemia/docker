@@ -258,7 +258,7 @@ EOF
 * [kube-cgroup-drivers(ENG)](https://kubernetes.io/docs/setup/production-environment/#cgroup-drivers)
 * [kube-cgroup-drivers(KOR)](https://kubernetes.io/ko/docs/setup/production-environment/#cgroup-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B2%84)
 
-* [Docker Storage Drivers](https://docs.docker.com/storage/storagedriver/select-storage-driver/)
+* [Docker Storage Drivers](https://docs.docker.com/storage/storagedriver/select-storage-driver/)  
 | Union File System(Technology) | Storage driver name |
 | :---------------------------- | :------------------ |
 | OverlayFS	| `overlay` or `overlay2` |
