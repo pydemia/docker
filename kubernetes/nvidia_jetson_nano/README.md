@@ -3,6 +3,15 @@
 Master: 1
 Worker: 3
 
+# Table of Contents
+* Prerequisite(#prerequisite)
+  * Boot-up(#boot-up)
+  * Network Config(#network-config)
+  * System Basic Settings(#system-basic-settings)
+  * Docker Setting(#docker-setting)
+    * NVIDIA Runtime for Docker()
+* 
+
 ## Prerequisite
 
 ### Boot-up
@@ -96,7 +105,7 @@ ssh-keygen -f "/home/pydemia/.ssh/known_hosts" -R 192.168.2.14
 
 
 
-### System Basic Setting
+### System Basic Settings
 
 ```sh
 sudo apt update
@@ -222,7 +231,7 @@ sudo usermod -aG docker $USER
 newgrp docker  # to change the current group ID (GID) during a login session.
 ```
 
-#### Set the `NVidia runtime` as a default runtime in Docker.
+#### NVIDIA Runtime for Docker-Set the `NVidia runtime` as a default runtime in Docker.
 
 Default:
 `cat /etc/docker/daemon.json`
