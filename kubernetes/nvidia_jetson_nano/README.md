@@ -1,31 +1,31 @@
 # Create a Kubernetes cluster on NVIDIA Jetson Nano
 
-Master: 1
-Worker: 3
+Master: 1  
+Worker: 3  
 
 # Table of Contents
-* Prerequisite(#prerequisite)
-  * Boot-up(#boot-up)
-  * Network Config(#network-config)
-  * System Basic Settings(#system-basic-settings)
-  * Docker Setting(#docker-setting)
-    * NVIDIA Runtime for Docker(#nvidia-runtime-for-docker-set-the-nvidia-runtime-as-a-default-runtime-in-docker)
-  * Teset GPU on Docker(#test-gpu-on-docker)
-  * Kubernetes Setting(#kubernetes-setting)
-    * NTP(#ntp-time-server-sync)
-    * Docker on(#docker-service-on)
-    * Port Allocation & Firewall(#port-allocation)
-* Install Kubernetes(#install-kubernetes)
-  * Add Kubernetes Repository & Install Kubernetes on all resources(#add-kubernetes-repository--install-kubernetes-on-all-resources)
-  * Initialize a Kubernetes Cluster(#initialize-a-kubernetes-cluster)
-  * Install `cni`(#install-cni)
-    * Cluster Networking via `calico`(#cluster-networking-via-calicoused-by-google)
-    * `calicoctl` application as a pod(#calicoctl-application-as-a-pod)
-    * Cluster Networking via `flannel`(#cluster-networking-via-flannel)
-  * Check the cluster(#check-the-cluster)
-    * Calico Setting(#calico-setting)
-    * Test(#test)
-      * Docker Registry Authentication(#docker-registry-authentication)
+* [Prerequisite](#prerequisite)
+  * [Boot-up](#boot-up)
+  * [Network Config](#network-config)
+  * [System Basic Settings](#system-basic-settings)
+  * [Docker Setting](#docker-setting)
+    * [NVIDIA Runtime for Docker](#nvidia-runtime-for-docker-set-the-nvidia-runtime-as-a-default-runtime-in-docker)
+  * [Teset GPU on Docker](#test-gpu-on-docker)
+  * [Kubernetes Setting](#kubernetes-setting)
+    * [NTP](#ntp-time-server-sync)
+    * [Docker on](#docker-service-on)
+    * [Port Allocation & Firewall](#port-allocation)
+* [Install Kubernetes](#install-kubernetes)
+  * [Add Kubernetes Repository & Install Kubernetes on all resources](#add-kubernetes-repository--install-kubernetes-on-all-resources)
+  * [Initialize a Kubernetes Cluster](#initialize-a-kubernetes-cluster)
+  * [Install `cni`](#install-cni)
+    * [Cluster Networking via `calico`](#cluster-networking-via-calicoused-by-google)
+    * [`calicoctl` application as a pod](#calicoctl-application-as-a-pod)
+    * [(Optional)Cluster Networking via `flannel`](#optional-cluster-networking-via-flannel)
+  * [Check the cluster](#check-the-cluster)
+    * [Calico Setting](#calico-setting)
+    * [Test](#test)
+      * [Docker Registry Authentication](#docker-registry-authentication)
 * Manage Kubernetes
   * Dashboard
 
@@ -1022,7 +1022,7 @@ source /etc/bash.bashrc && source ~/.bashrc
 
 From [install-calicoctl-as-a-kube-pod](https://docs.projectcalico.org/getting-started/calicoctl/install#installing-calicoctl-as-a-kubernetes-pod)
 
-#### Cluster Networking via `flannel`
+#### (Optional) Cluster Networking via `flannel`
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.11.0/Documentation/kube-flannel.yml
 ```
@@ -1047,14 +1047,14 @@ kubectl label node kube-jn02 node-role.kubernetes.io/worker=worker
 kubectl label node kube-jn03 node-role.kubernetes.io/worker=worker
 ```
 
-  - Add a label: 
-    ```bash
-    kubectl label node <node name> node-role.kubernetes.io/<role name>=<key - (any name)>
-    ```
-  - Remove a label:
-    ```bash
-    kubectl label node <node name> node-role.kubernetes.io/<role name>-
-    ```
+> - Add a label: 
+>   ```bash
+>   kubectl label node <node name> node-role.kubernetes.io/<role name>=<key - (any name)>
+>   ```
+> - Remove a label:
+>   ```bash
+>   kubectl label node <node name> node-role.kubernetes.io/<role name>-
+>   ```
 
 * Check it Again:
 ```sh
@@ -1081,25 +1081,6 @@ If needed:
 kubeadm reset -f
 ```
 
-### Error
-
-```sh
-kubectl get endpoints kubernetes
-
-NAME         ENDPOINTS           AGE
-kubernetes   192.168.2.11:6443   43m
-```
-
-```sh
-curl https://10.96.0.1:443/version
-
-curl: (60) SSL certificate problem: unable to get local issuer certificate
-More details here: https://curl.haxx.se/docs/sslcerts.html
-
-curl failed to verify the legitimacy of the server and therefore could not
-establish a secure connection to it. To learn more about this situation and
-how to fix it, please visit the web page mentioned above.
-```
 
 #### Calico Setting
 
@@ -1135,8 +1116,6 @@ W0502 21:48:40.810016       1 client_config.go:541] Neither --kubeconfig nor --m
 2020-05-02 21:48:50.813 [ERROR][1] client.go 255: Error getting cluster information config ClusterInformation="default" error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
 2020-05-02 21:48:50.813 [FATAL][1] main.go 113: Failed to initialize Calico datastore error=Get https://10.96.0.1:443/apis/crd.projectcalico.org/v1/clusterinformations/default: context deadline exceeded
 ```
-
-
 
 #### Test
 
@@ -1203,6 +1182,27 @@ kubectl create secret docker-registry docker-registry-login \
 secret/docker-registry-login created
 
 kubectl get secrets
+```
+
+
+### Error
+
+```sh
+kubectl get endpoints kubernetes
+
+NAME         ENDPOINTS           AGE
+kubernetes   192.168.2.11:6443   43m
+```
+
+```sh
+curl https://10.96.0.1:443/version
+
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
 ```
 
 
