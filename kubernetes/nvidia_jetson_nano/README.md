@@ -279,7 +279,7 @@ EOF
 > you are sure that every Docker command and every Docker-based tool will be **_allowed to access the GPU_**.
 
 
-##### Set ENV in `/etc/bash.bashrc` & `/etc/profile`
+##### Set Environment variables for `cuda`: (`/etc/bash.bashrc` and `/etc/profile`)
 
 * Check `cuda version` installed
 ```sh
@@ -289,8 +289,7 @@ lrwxrwxrwx  1 root root    9 Apr 19 11:57 cuda -> cuda-10.2
 drwxr-xr-x 12 root root 4096 Apr 19 11:57 cuda-10.2
 ```
 
-# Set Environment variables for `cuda`: (`/etc/bash.bashrc` and `/etc/profile`)
-
+* Append `env_var`s
 ```bash
 echo '
 # CUDA PATH
