@@ -703,6 +703,24 @@ sudo ufw allow 10250:10255,30000:32767,179,2379:2380/tcp
 sudo ufw allow 8285,8472/udp
 ```
 
+##### Using `iptables`
+
+```bash
+sudo apt install -y iptables iptables-persistent netfilter-persistent
+
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Master
+sudo iptables -A INPUT -p tcp --match multiport  --dport 6443,443,2379:2380,10250:10255 -j ACCEPT
+sudo iptables -A INPUT -p udp --match multiport  --dport 8285,8472 -j ACCEPT
+
+# Worker
+sudo iptables -A INPUT -p tcp --match multiport  --dport 10250:10255,30000:32767,179,2379:2380 -j ACCEPT
+sudo iptables -A INPUT -p udp --match multiport  --dport 8285,8472 -j ACCEPT
+
+```
+
+
 ---
 ## Install Kubernetes
 
@@ -1031,6 +1049,14 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.11.0/Docume
 
 ### Check the cluster
 
+```bash
+> kubectl cluster-info
+Kubernetes master is running at https://192.168.2.11:6443
+KubeDNS is running at https://192.168.2.11:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+```
+
 ```sh
 kubectl get nodes
 
@@ -1070,6 +1096,7 @@ kube-jn03   Ready    worker   7m29s   v1.15.10
 
 ```sh
 watch kubectl get pods --all-namespaces
+alias kube-watch="watch -n 5 kubectl get pods --all-namespaces"
 watch kubectl get pods --all-namespaces -o wide
 ```
 
