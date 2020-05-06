@@ -694,6 +694,9 @@ sudo systemctl status ufw
 ```bash
 sudo ufw allow 6443,443,2379:2380,10250:10255/tcp
 sudo ufw allow 8285,8472/udp
+
+# Just in case, CNI_CIDR
+sudo ufw allow from 192.168.99.0/24
 ```
 
 ##### Worker Node
@@ -701,6 +704,9 @@ sudo ufw allow 8285,8472/udp
 ```bash
 sudo ufw allow 10250:10255,30000:32767,179,2379:2380/tcp
 sudo ufw allow 8285,8472/udp
+
+# Just in case, CNI_CIDR
+sudo ufw allow from 192.168.99.0/24
 ```
 
 ##### Using `iptables`
@@ -1050,7 +1056,7 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.11.0/Docume
 ### Check the cluster
 
 ```bash
-> kubectl cluster-info
+$ kubectl cluster-info
 Kubernetes master is running at https://192.168.2.11:6443
 KubeDNS is running at https://192.168.2.11:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
