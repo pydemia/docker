@@ -171,3 +171,120 @@ TAG=0.3.0 && \
 CONFIG_URI=https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml && \
 kubectl apply -f "${CONFIG_URI}"
 ```
+
+
+## Expose `kubeflow`
+
+<https://www.kubeflow.org/docs/started/k8s/kfctl-istio-dex/#expose-kubeflow>
+
+* Old:
+```yaml
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.istio.io/v1alpha3","kind":"Gateway","metadata":{"annotations":{},"name":"kubeflow-gateway","namespace":"kubeflow"},"spec":{"selector":{"istio":"ingressgateway"},"servers":[{"hosts":["*"],"port":{"name":"http","number":80,"protocol":"HTTP"}}]}}
+  creationTimestamp: "2020-05-06T06:15:59Z"
+  generation: 1
+  name: kubeflow-gateway
+  namespace: kubeflow
+  resourceVersion: "301658"
+  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/kubeflow/gateways/kubeflow-gateway
+  uid: 218a427f-68d1-434c-b404-9da2c294be9d
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - '*'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+```
+
+* New `kubeflow-gateway-for-expose.yaml`:
+```sh
+kubectl apply -f kubeflow-gateway-for-expose.yaml
+```
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.istio.io/v1alpha3","kind":"Gateway","metadata":{"annotations":{},"name":"kubeflow-gateway","namespace":"kubeflow"},"spec":{"selector":{"istio":"ingressgateway"},"servers":[{"hosts":["*"],"port":{"name":"http","number":80,"protocol":"HTTP"}}]}}
+  creationTimestamp: "2020-05-06T06:15:59Z"
+  generation: 1
+  name: kubeflow-gateway
+  namespace: kubeflow
+  resourceVersion: "301658"
+  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/kubeflow/gateways/kubeflow-gateway
+  uid: 218a427f-68d1-434c-b404-9da2c294be9d
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - '*'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+    # Upgrade HTTP to HTTPS
+    tls:
+      httpsRedirect: true
+  - hosts:
+    - '*'
+    port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+```
+
+
+## Expose with a LoadBalancer
+
+**NOTE**: Check the GKE Add-ons `HTTP load balancing: Enabled`.
+
+```sh
+$ kubectl patch service -n istio-system istio-ingressgateway -p '{"spec": {"type": "LoadBalancer"}}'
+$ kubectl get svc -n istio-system istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0]}'
+```
+
+## Create a certificate with `cert-manager`:
+
+```yaml
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: istio-ingressgateway-certs
+  namespace: istio-system
+spec:
+  commonName: istio-ingressgateway.istio-system.svc
+  # Use ipAddresses if your LoadBalancer issues an IP
+  ipAddresses:
+  - "35.226.255.17"
+  # Use dnsNames if your LoadBalancer issues a hostname (eg on AWS)
+  dnsNames:
+  - <LoadBalancer HostName>
+  isCA: true
+  issuerRef:
+    kind: ClusterIssuer
+    name: kubeflow-self-signing-issuer
+  secretName: istio-ingressgateway-certs
+```
+
+After applying the above Certificate, `cert-manager` will generate the `TLS certificate` inside the `istio-ingressgateway-certs` secrets. The `istio-ingressgateway-certs secret` is mounted on the `istio-ingressgateway` deployment and used to serve `HTTPS`.
+
+Navigate to `https://<LoadBalancer Address>/` and start using Kubeflow.
