@@ -20,6 +20,7 @@ chmod 700 get_helm.sh
 kubectl -n kube-system create sa tiller
 kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
 helm init --service-account tiller --history-max 200
+kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 ```
 
 ### Update Chart list
@@ -56,4 +57,21 @@ helm install -f config.yaml stable/mariadb
 helm upgrade -f panda.yaml happy-panda stable/mariadb
 helm get values happy-panda
 helm rollback happy-panda 1
+```
+
+Get all:
+```sh
+curl -fsSL https://get.helm.sh/helm-v2.16.7-linux-amd64.tar.gz | tar -zxvf - && \
+mkdir -p $HOME/.local/bin && \
+mv linux-amd64/helm $HOME/.local/bin && \
+mv linux-amd64/tiller $HOME/.local/bin/ && \
+rm -r linux-amd64
+```
+
+
+Get `helm` only:
+```sh
+curl -fsSL https://get.helm.sh/helm-v2.16.7-linux-amd64.tar.gz | tar -zxvf - --strip-components 1 linux-amd64/helm
+mkdir -p $HOME/.local/bin
+mv ./helm $HOME/.local/bin/
 ```

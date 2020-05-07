@@ -5,97 +5,137 @@ Github: <https://github.com/kubeflow/>
 
 ## Installation
 
-### Prepare `kfctl`
+Install on an existing GKE cluster(`dex` and `Istio`: for Multi-User).
 
-Releases: <https://github.com/kubeflow/kfctl/releases>
+---
+### (Optional) Access `gcloud` with `SERVICE-ACCOUNT`, if needed
 
-* Untar `kfctl release`
+A general-purpose Kubernetes cluster;Kubeflow, KFServing, NVIDIA Runtime, etc.
+
+**NOTE**: 
+[Available GPU Type for Each *Zone*](https://cloud.google.com/compute/docs/gpus#gpus-list)
+[Available GPU Type for Each *Region*](https://cloud.google.com/ai-platform/training/docs/regions#americas_1)
+
+
+#### 1. Check which account you're using:
 ```sh
-$ curl -fsSL https://github.com/kubeflow/kfctl/releases/download/v1.0.2/kfctl_v1.0.2-0-ga476281_linux.tar.gz | tar -zxvf -
-./kfctl
+$ gcloud auth list
+                      Credentialed Accounts
+ACTIVE  ACCOUNT
+        <A-account@gmail.com>
+*       <B-account>
+        <C-account@domain.com>
+        ...
+
+To set the active account, run:
+    $ gcloud config set account `ACCOUNT`
 ```
 
-### Prepare `gcloud` Setting
-
-Log in `gcloud` and create a credential
-
-> **WARNING**: `gcloud auth login` no longer writes application default credentials.
-> If you need to use ADC, see:
->   `gcloud auth application-default --help`
-
-#### Create a Service Account for `kubeflow`
+##### 1-1. SET **USER** ACCOUNT if not:
 ```sh
-# Create a sa
-$ gcloud iam service-accounts create gcpcmdlineuser --display-name "GCP Service Account"
-# List users
-$ gcloud iam service-accounts list --filter yjkim
-# Download the sa key
-$ gcloud iam service-accounts keys create gcpcmdlineuser.json --iam-account gcpcmdlineuser@someproject.iam.gserviceaccount.com
-# Associate a ROLE
-$ gcloud iam roles create <ROLE NAME> --project <YOUR PROJECT ID> --file ./rolename.yaml
-$ gcloud projects add-iam-policy-binding <PROJECT ID> --role <ROLE NAME> --member serviceAccount:<EMAIL ADDRESS>
-#$ gcloud projects add-iam-policy-binding someprojecthere --member "serviceAccount:gcpcmdlineuser@someproject.iam.gserviceaccount.com" --role "roles/owner"
-# Activate the sa
-$ gcloud auth activate-service-account --project=someproject --key-file=gcpcmdlineuser.json
+$ gcloud config set account `<C-account@domain.com>`
+Updated property [core/account].
+
+# Check it again
+$ gcloud auth list
+                      Credentialed Accounts
+ACTIVE  ACCOUNT
+        <A-account@gmail.com>
+        <B-account>
+*       <C-account@domain.com>
+        ...
+
+To set the active account, run:
+    $ gcloud config set account `ACCOUNT`
 ```
 
-#### List Users
-```sh
-export KF_SA_NAME="yjkim-kube-admin-sa"
-export KF_PJT="ds-ai-platform"
-export KF_SA="${KF_SA_NAME}@${KF_PJT}.iam.gserviceaccount.com"
-echo "${KF_SA_NAME}_key.json"
-gcloud iam service-accounts keys create "${KF_SA_NAME}_key.json" --iam-account="${KF_SA}"
-gcloud auth activate-service-account --project="${KF_PJT}" --key-file="${KF_SA_NAME}_key.json"
-
-gcloud config set account "${KF_SA}"
-gcloud auth application-default login --no-launch-browser
-gcloud auth application-default login \
-    --client-id-file="${KF_SA_NAME}_key.json"
-
-```
+#### 2. Log in `gcloud` with a `service account`:
 
 ```sh
-$ gcloud auth login
+$ gcloud iam service-accounts keys create \
+    <KEY-NAME>.json \
+    --iam-account <SERVICE-ACCOUNT> && \
+  gcloud auth activate-service-account \
+    <SERVICE-ACCOUNT> \
+    --project=<GCP-PROJECT-ID> \
+    --key-file=<KEY-NAME>.json
 ```
 
-Log in with a credential:
+> In my case:
+> ```sh
+> # yjkim-kbcluster:  yjkim-kube-admin-sa@ds-ai-platform.iam.> gserviceaccount.com
+> $ gcloud iam service-accounts keys create \
+>     kbc-sa-key.json \
+>     --iam-account yjkim-kube-admin-sa@ds-ai-platform.iam.> gserviceaccount.com && \
+>   gcloud auth activate-service-account \
+>     yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com \
+>     --project=ds-ai-platform \
+>     --key-file=kbc-sa-key.json
+> 
+> # yjkim-kubeflow-gui: yjkim-kubeflow-gui-vm@ds-ai-platform.iam.> gserviceaccount.com
+> $ gcloud iam service-accounts keys create \
+>     kfc-sa-key.json \
+>     --iam-account yjkim-kubeflow-gui-vm@ds-ai-platform.iam.> gserviceaccount.com && \
+>   gcloud auth activate-service-account \
+>     yjkim-kubeflow-gui-vm@ds-ai-platform.iam.gserviceaccount.com \
+>     --project=ds-ai-platform \
+>     --key-file=kfc-sa-key.json
+> ```
+
+Then, the output would be the following:
 ```sh
-# If you need to create a credential to login:
-$ gcloud auth application-default login
-
-# If you'd like to login by passing in a file containing your own client id:
-$ gcloud auth application-default login \
-    --client-id-file=clientid.json
+created key [xxxxxxxxxx] of type [json] as [keyname.json] for [<SERVICE-ACCOUNT>]
+Activated service account credentials for: [<SERVICE-ACCOUNT>]
 ```
 
-[JSON Format](https://github.com/googleapis/google-api-python-client/blob/8496ebe7e4c282371c831cabdeb390855ff0d270/docs/client-secrets.md)
+NOW, you can manage GKE cluster, not as an *USER*, but as an **SERVICE-ACCOUNT**.  
 
-```json
-{
-  "client_id": "764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com",
-  "client_secret": "d-FL95Q19q7MQmFpd7hHD0Ty",
-  "refresh_token": "1//0eYgbGnATW3A6CgYIARAAGA4SNwF-L9Ir3ogjmNx3Y5rRMFz-ptfy_EOkrg7co7QmY7t_6VtTIg1M3BRgZF79G8ZnQLndfQRQVNs",
-  "type": "authorized_user"
-}
-{
-  "installed": {
-    "client_id": "asdfjasdljfasdkjf",
-    "client_secret": "1912308409123890",
-    "redirect_uris": ["https://www.example.com/oauth2callback"],
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://accounts.google.com/o/oauth2/token"
-  }
-}
+Show the `gcloud auth list` again:
+```sh
+$ gcloud auth list
+                      Credentialed Accounts
+ACTIVE  ACCOUNT
+        <A-account@gmail.com>
+        <B-account>
+        <C-account@domain.com>
+*       <SERVICE-ACCOUNT>
+        ...
+
+To set the active account, run:
+    $ gcloud config set account `ACCOUNT`
+```
+
+#### 3. Access to the `kube-cluster`:
+```sh
+$ gcloud container clusters get-credentials \
+  yjkim-kbcluster \
+  --region us-central1 \
+  --project ds-ai-platform
+
+$ alias gcloud-kbc="gcloud container clusters get-credentials yjkim-kbcluster --region us-central1 --project ds-ai-platform"
+$ alias gcloud-kfc="gcloud container clusters get-credentials yjkim-kubeflow-gui --region us-west1-b --project ds-ai-platform"
+
+$ kubectl config current-context
 ```
 
 ---
-## Install on an existing cluster(`dex` and `Istio`: for Multi-User)
 
-### Access `gcloud`
+### Install `kubeflow` on GKE
+
+#### 1. Prepare `kubectl`
 
 ```sh
-$ gcloud container clusters get-credentials yjkim-kbcluster --region us-central1 --project ds-ai-platform
+# For Example: curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/kubectl
+$ curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
+chmod +x ./kubectl && \
+mkdir -p $HOME/.local/bin && \
+mv ./kubectl $HOME/.local/bin/kubectl
+
+# RUN if `$HOME/.local/bin` is not in $PATH:
+echo '
+export PATH="$HOME/.local/bin:${PATH}"
+' | tee -a ~/.bashrc && \
+source ~/.bashrc
 ```
 
 ### Prepare `kfctl`
@@ -105,9 +145,15 @@ Releases: <https://github.com/kubeflow/kfctl/releases>
 * Untar `kfctl release`
 ```sh
 $ curl -fsSL https://github.com/kubeflow/kfctl/releases/download/v1.0.2/kfctl_v1.0.2-0-ga476281_linux.tar.gz | tar -zxvf -
-./kfctl
-mkdir -p $HOME/.local/bin
-cp kfctl $HOME/.local/bin
+chmod +x ./kfctl && \
+mkdir -p $HOME/.local/bin && \
+mv ./kfctl $HOME/.local/bin/kfctl
+
+# RUN if `$HOME/.local/bin` is not in $PATH:
+echo '
+export PATH="$HOME/.local/bin:${PATH}"
+' | tee -a ~/.bashrc 
+source ~/.bashrc
 ```
 
 * Create env_vars for deployment
@@ -163,14 +209,21 @@ http://localhost:8080
 ## KF Serving
 
 ```sh
-TAG=0.2.2
-CONFIG_URI=https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml
-kubectl apply -f ${CONFIG_URI}
+TAG=0.2.2 && \
+wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml \
+    -O "kfserving-${TAG}.yaml"
+kubectl apply -f "kfserving-${TAG}.yaml"
 
-TAG=0.3.0 && \
-CONFIG_URI=https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml && \
-kubectl apply -f "${CONFIG_URI}"
+TAG=v0.3.0 && \
+wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml \
+    -O "kfserving-${TAG}.yaml"
+kubectl apply -f "kfserving-${TAG}.yaml"
 ```
+
+
+## Sidecar Injection:
+1. <https://cloud.google.com/istio/docs/istio-on-gke/installing#enabling_sidecar_injection>
+2. https://istio.io/docs/setup/additional-setup/sidecar-injection/
 
 
 ## Expose `kubeflow`

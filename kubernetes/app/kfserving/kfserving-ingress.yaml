@@ -1,0 +1,9 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kfserving-ingress
+  namespace: kfserving-system
+spec:
+  backend:
+    serviceName: istio-ingress
+    servicePort: 80
