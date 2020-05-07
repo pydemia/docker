@@ -4,8 +4,8 @@ Refer to [Integrating HTTP(S) Load Balancing with Cloud Run for Anthos on Google
 
 ## 1. Create a cluster, which has `HTTP LoadBalancer`, `Istio`, `Knative`
 
-> `addons Istio` and install `Knative` manually:It is not working.
-> Install `CloudRun` to Bypass the problem
+**Info**: `addons Istio` and install `Knative` manually:It is not working.
+Install `CloudRun` to bypass the problem
 
 ```bash
 CLUSTER_NM=kfserving-sklearn
