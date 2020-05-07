@@ -120,9 +120,11 @@ curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samp
 kubectl apply -f sklearn.yaml
 ```
 
-## 5. 
+## 5. Get a prediction
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/iris-input.json -O
+
 MODEL_NAME=sklearn-iris
 INPUT_PATH=@./iris-input.json
 CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
