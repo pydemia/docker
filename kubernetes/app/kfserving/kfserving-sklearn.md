@@ -155,3 +155,11 @@ Then, the output would be the following:
 ```
 
 Done.
+
+Next Step: **Using `sidecar injection` with `Istio`**
+
+Further Readings about **Sidecar Injection**
+1. <https://cloud.google.com/istio/docs/istio-on-gke/installing#enabling_sidecar_injection>
+2. https://istio.io/docs/setup/additional-setup/sidecar-injection/
+
+Prerequisite: [`istioctl`](../../../istio/README.md#install-istioctl)
