@@ -70,9 +70,9 @@ spec:
 EOF
 ```
 
-* Modifying the Istio ingress gateway for use with Kubernetes Ingress
+## 3. Modifying the Istio ingress gateway for use with Kubernetes Ingress
 
-### 2-1. Create a JSON Patch file to make changes to the Istio ingress gateway:
+### 3-1. Create a JSON Patch file to make changes to the Istio ingress gateway:
 ```bash
 cat <<EOF > istio-ingress-patch.json
 [
@@ -89,7 +89,7 @@ cat <<EOF > istio-ingress-patch.json
 EOF
 ```
 
-### 2-2. Apply the patch file and add the Istio ingress gateway as a backend:
+### 3-2. Apply the patch file and add the Istio ingress gateway as a backend:
 ```bash
 kubectl -n gke-system patch svc istio-ingress \
     --type=json -p="$(cat istio-ingress-patch.json)" \
@@ -102,7 +102,7 @@ This patch makes the following changes to the Kubernetes Service object of the I
 * Adds the annotation `cloud.google.com/neg: '{"ingress": true}'`. This annotation creates a network endpoint group and enables container-native load balancing when the Kubernetes Ingress object is created.
 * Changes the Kubernetes Service type from `LoadBalancer` to `NodePort`. This change removes the Network Load Balancing resources.
 
-### 2-3. Creating a Kubernetes Ingress object
+### 3-3. Creating a Kubernetes Ingress object
 
 * HTTP
 ```bash
@@ -110,7 +110,7 @@ kubectl apply -f - <<EOF
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: my-ingress
+  name: my-ingress-http
   namespace: gke-system
 spec:
   backend:
@@ -125,7 +125,7 @@ kubectl apply -f - <<EOF
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: my-ingress-2
+  name: my-ingress-https
 spec:
   tls:
   - secretName: <secret-name>
@@ -139,12 +139,12 @@ spec:
 ```
 
 ```bash
-kubectl get ingress my-ingress -n gke-system
-INGRESS_IP=$(kubectl get ingress my-ingress -n gke-system \
+kubectl get ingress -n gke-system
+INGRESS_IP=$(kubectl get ingress -n gke-system \
     --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
-## 3. Install `KFServing`
+## 4. Install `KFServing`
 
 ```bash
 TAG=0.2.2 && \
@@ -153,14 +153,14 @@ wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kf
 kubectl apply -f "kfserving-${TAG}.yaml"
 ```
 
-## 4. Set `inferenceservice`
+## 5. Set `inferenceservice`
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/sklearn.yaml -O
 kubectl apply -f sklearn.yaml
 ```
 
-## 5. Get a prediction
+## 6. Get a prediction
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/iris-input.json -O
