@@ -3,7 +3,7 @@
 
 ## 1. Create a cluster, which has `HTTP LoadBalancer`, `Istio`, `Knative`
 
-```sh
+```bash
 CLUSTER_NM=kfserving-sklearn
 ZONE=us-central1-f
 gcloud beta container clusters create $CLUSTER_NM \
@@ -19,15 +19,14 @@ gcloud beta container clusters create $CLUSTER_NM \
 ```
 
 Show the `current-context`:
-```sh
-$ kubectl config current-context
-gke_ds-ai-platform_us-central1-f_kfserving-sklearn
+```bash
+kubectl config current-context
 ```
 
 or select it:
 
-```sh
-$ gcloud container clusters get-credentials $CLUSTER_NM \
+```bash
+gcloud container clusters get-credentials $CLUSTER_NM \
   --region $ZONE
   #--project ds-ai-platform
 ```
@@ -35,7 +34,7 @@ $ gcloud container clusters get-credentials $CLUSTER_NM \
 ## 2. Set `HTTPLoadBalancer`
 
 * Handling health check requests
-```sh
+```bash
 kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -70,7 +69,7 @@ EOF
 * Modifying the Istio ingress gateway for use with Kubernetes Ingress
 
 ### 2-1. Create a JSON Patch file to make changes to the Istio ingress gateway:
-```sh
+```bash
 cat <<EOF > istio-ingress-patch.json
 [
   {
@@ -87,7 +86,7 @@ EOF
 ```
 
 ### 2-2. Apply the patch file and add the Istio ingress gateway as a backend:
-```sh
+```bash
 kubectl -n gke-system patch svc istio-ingress \
     --type=json -p="$(cat istio-ingress-patch.json)" \
     --dry-run=true -o yaml | kubectl apply -f -
@@ -103,7 +102,7 @@ This patch makes the following changes to the Kubernetes Service object of the I
 
 ## 3. Install `KFServing`
 
-```sh
+```bash
 TAG=0.2.2 && \
 wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml \
     -O "kfserving-${TAG}.yaml"
@@ -112,14 +111,14 @@ kubectl apply -f "kfserving-${TAG}.yaml"
 
 ## 4. Set `inferenceservice`
 
-```sh
+```bash
 curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/sklearn.yaml -O
 kubectl apply -f sklearn.yaml
 ```
 
 ## 5. 
 
-```sh
+```bash
 MODEL_NAME=sklearn-iris
 INPUT_PATH=@./iris-input.json
 CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
