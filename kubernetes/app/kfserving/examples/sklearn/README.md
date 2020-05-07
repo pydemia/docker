@@ -99,10 +99,50 @@ kubectl annotate svc istio-ingress -n gke-system cloud.google.com/neg='{"exposed
 
 This patch makes the following changes to the Kubernetes Service object of the Istio ingress gateway:
 
-* Adds the annotation cloud.google.com/neg: '{"ingress": true}'. This annotation creates a network endpoint group and enables container-native load balancing when the Kubernetes Ingress object is created.
-* Changes the Kubernetes Service type from LoadBalancer to NodePort. This change removes the Network Load Balancing resources.
+* Adds the annotation `cloud.google.com/neg: '{"ingress": true}'`. This annotation creates a network endpoint group and enables container-native load balancing when the Kubernetes Ingress object is created.
+* Changes the Kubernetes Service type from `LoadBalancer` to `NodePort`. This change removes the Network Load Balancing resources.
 
+### 2-3. Creating a Kubernetes Ingress object
 
+* HTTP
+```bash
+kubectl apply -f - <<EOF
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+  namespace: gke-system
+spec:
+  backend:
+    serviceName: istio-ingress
+    servicePort: 80
+EOF
+```
+
+* [HTTPS](https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb#setting_up_https_tls_between_client_and_load_balancer)
+```bash
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress-2
+spec:
+  tls:
+  - secretName: <secret-name>
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: istio-ingress
+          servicePort: 60000
+```
+
+```bash
+kubectl get ingress my-ingress -n gke-system
+INGRESS_IP=$(kubectl get ingress my-ingress -n gke-system \
+    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
 
 ## 3. Install `KFServing`
 
