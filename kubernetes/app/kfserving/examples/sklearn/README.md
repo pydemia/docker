@@ -1,6 +1,6 @@
 # KF Serving with creating an inference cluster
 
-Refer to [this](https://cloud.google.com/solutions/integrating-https-load-balancing-with-istio-and-cloud-run-for-anthos-deployed-on-gke)
+Refer to [Integrating HTTP(S) Load Balancing with Cloud Run for Anthos on Google Cloud](https://cloud.google.com/solutions/integrating-https-load-balancing-with-istio-and-cloud-run-for-anthos-deployed-on-gke)
 
 ## 1. Create a cluster, which has `HTTP LoadBalancer`, `Istio`, `Knative`
 
