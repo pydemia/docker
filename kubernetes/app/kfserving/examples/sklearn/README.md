@@ -1,7 +1,11 @@
 # KF Serving with creating an inference cluster
 
+Refer to [this](https://cloud.google.com/solutions/integrating-https-load-balancing-with-istio-and-cloud-run-for-anthos-deployed-on-gke)
 
 ## 1. Create a cluster, which has `HTTP LoadBalancer`, `Istio`, `Knative`
+
+> `addons Istio` and install `Knative` manually:It is not working.
+> Install `CloudRun` to Bypass the problem
 
 ```bash
 CLUSTER_NM=kfserving-sklearn
