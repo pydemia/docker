@@ -35,6 +35,9 @@ gcloud container clusters get-credentials $CLUSTER_NM \
   #--project ds-ai-platform
 ```
 
+Result:
+![](after_cluster_creation.png)
+
 ## 2. Set `HTTPLoadBalancer`
 
 * Handling health check requests
@@ -89,6 +92,62 @@ cat <<EOF > istio-ingress-patch.json
 EOF
 ```
 
+This will change `istio-ingress` as the following:
+```diff
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"addonmanager.kubernetes.io/mode":"Reconcile","app":"ingressgateway","chart":"gateways","heritage":"Tiller","istio":"ingress-gke-system","release":"istio"},"name":"istio-ingress","namespace":"gke-system"},"spec":{"ports":[{"name":"status-port","port":15020},{"name":"http2","port":80},{"name":"https","port":443}],"selector":{"app":"ingressgateway","istio":"ingress-gke-system","release":"istio"},"type":"LoadBalancer"}}
+  creationTimestamp: "2020-05-08T00:06:25Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+    app: ingressgateway
+    chart: gateways
+    heritage: Tiller
+    istio: ingress-gke-system
+    release: istio
+  name: istio-ingress
+  namespace: gke-system
+  resourceVersion: "1459"
+  selfLink: /api/v1/namespaces/gke-system/services/istio-ingress
+  uid: 7e458a33-42d5-4e0e-8142-2465915891ec
+spec:
+  clusterIP: 10.3.15.10
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: status-port
+    nodePort: 31017
+    port: 15020
+    protocol: TCP
+    targetPort: 15020
+  - name: http2
+    nodePort: 32195
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: https
+    nodePort: 30050
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app: ingressgateway
+    istio: ingress-gke-system
+    release: istio
+  sessionAffinity: None
+--  type: LoadBalancer
+++  type: NodePort
+status:
+--  loadBalancer:
+++  loadBalancer: {}
+--    ingress:
+--    - ip: 34.68.174.165
+```
+
 ### 3-2. Apply the patch file and add the Istio ingress gateway as a backend:
 ```bash
 kubectl -n gke-system patch svc istio-ingress \
@@ -101,6 +160,59 @@ This patch makes the following changes to the Kubernetes Service object of the I
 
 * Adds the annotation `cloud.google.com/neg: '{"ingress": true}'`. This annotation creates a network endpoint group and enables container-native load balancing when the Kubernetes Ingress object is created.
 * Changes the Kubernetes Service type from `LoadBalancer` to `NodePort`. This change removes the Network Load Balancing resources.
+
+This will change `istio-ingress` as the following:
+```diff
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+++  cloud.google.com/neg: '{"exposed_ports": {"80":{}}}'
+    cloud.google.com/neg-status: '{"network_endpoint_groups":{"80":"k8s1-091cb68f-gke-system-istio-ingress-80-5e731494"},"zones":["us-central1-f"]}'
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"creationTimestamp":"2020-05-08T00:06:25Z","finalizers":["service.kubernetes.io/load-balancer-cleanup"],"labels":{"addonmanager.kubernetes.io/mode":"Reconcile","app":"ingressgateway","chart":"gateways","heritage":"Tiller","istio":"ingress-gke-system","release":"istio"},"name":"istio-ingress","namespace":"gke-system","resourceVersion":"1459","selfLink":"/api/v1/namespaces/gke-system/services/istio-ingress","uid":"7e458a33-42d5-4e0e-8142-2465915891ec"},"spec":{"clusterIP":"10.3.15.10","externalTrafficPolicy":"Cluster","ports":[{"name":"status-port","nodePort":31017,"port":15020,"protocol":"TCP","targetPort":15020},{"name":"http2","nodePort":32195,"port":80,"protocol":"TCP","targetPort":80},{"name":"https","nodePort":30050,"port":443,"protocol":"TCP","targetPort":443}],"selector":{"app":"ingressgateway","istio":"ingress-gke-system","release":"istio"},"sessionAffinity":"None","type":"NodePort"}}
+  creationTimestamp: "2020-05-08T00:06:25Z"
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+    app: ingressgateway
+    chart: gateways
+    heritage: Tiller
+    istio: ingress-gke-system
+    release: istio
+  name: istio-ingress
+  namespace: gke-system
+  resourceVersion: "6502"
+  selfLink: /api/v1/namespaces/gke-system/services/istio-ingress
+  uid: 7e458a33-42d5-4e0e-8142-2465915891ec
+spec:
+  clusterIP: 10.3.15.10
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: status-port
+    nodePort: 31017
+    port: 15020
+    protocol: TCP
+    targetPort: 15020
+  - name: http2
+    nodePort: 32195
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: https
+    nodePort: 30050
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app: ingressgateway
+    istio: ingress-gke-system
+    release: istio
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
+
+```
 
 ### 3-3. Creating a Kubernetes Ingress object
 
@@ -140,7 +252,8 @@ spec:
 
 ```bash
 kubectl get ingress -n gke-system
-INGRESS_IP=$(kubectl get ingress -n gke-system \
+INGRESS_NM="my-ingress-http"
+INGRESS_IP=$(kubectl get ingress ${INGRESS_NM} -n gke-system \
     --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
@@ -200,6 +313,81 @@ Then, the output would be the following:
 ```
 
 Done.
+
+---
+
+## 3-2, 3-3. Add Other port to `ingressgateway`
+
+* HTTP
+```bash
+kubectl apply -f - <<EOF
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress-http
+  namespace: gke-system
+spec:
+  backend:
+    serviceName: istio-ingress
+    servicePort: 80
+EOF
+```
+spec:
+  clusterIP: 10.3.15.10
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: status-port
+    nodePort: 31017
+    port: 15020
+    protocol: TCP
+    targetPort: 15020
+  - name: http2
+    nodePort: 32195
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: https
+    nodePort: 30050
+    port: 443
+    protocol: TCP
+    targetPort: 443
+**Tip**: Using `kubectl patch` and `{"op": "add"}`
+```sh
+kubectl patch svc istio-ingress --type='json' \
+-p='
+[
+  {
+    "op": "add",
+    "path": "/spec/ports",
+    "value": {
+      "name": "custom-port",
+      "nodePort": "",
+      "port": "",
+      "protocol": "TCP",
+      "targetPort": ""
+    }
+  }
+]
+'
+
+kubectl patch svc istio-ingressgateway --type='json' \
+-p='
+[
+  {
+    "op": "add",
+    "path": "/spec/ports",
+    "value": {
+      "name": "custom-port",
+      "nodePort": "",
+      "port": "",
+      "protocol": "TCP",
+      "targetPort": ""
+    }
+  }
+]
+'
+
+```
 
 Next Step: **Using `sidecar injection` with `Istio`**
 
