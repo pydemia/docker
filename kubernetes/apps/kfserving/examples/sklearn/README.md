@@ -223,10 +223,10 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: my-ingress-http
-  namespace: gke-system
+  namespace: istio-system
 spec:
   backend:
-    serviceName: istio-ingress
+    serviceName: istio-ingressgateway
     servicePort: 80
 EOF
 ```
