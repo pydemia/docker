@@ -7,7 +7,7 @@ Install `CloudRun` to bypass the problem
 
 <https://cloud.google.com/kubernetes-engine/docs/concepts/private-cluster-concept#overview>
 ```bash
-CLUSTER_NM=kfserving-sklearn1
+CLUSTER_NM=kfserving-sklearn
 ZONE=us-central1-f
 gcloud beta container clusters create $CLUSTER_NM \
     --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,CloudRun \
@@ -21,7 +21,7 @@ gcloud beta container clusters create $CLUSTER_NM \
     --enable-ip-alias \
     --enable-private-nodes \
     --no-enable-master-authorized-networks \
-    --master-ipv4-cidr 172.16.0.0/28
+    --master-ipv4-cidr 172.16.1.32/28
 ```
 
 Show the `current-context`:
@@ -39,6 +39,84 @@ gcloud container clusters get-credentials $CLUSTER_NM \
 
 Result:
 ![](after_cluster_creation.png)
+
+### 2
+```bash
+kubectl apply -f - <<EOF
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: health
+  namespace: knative-serving
+spec:
+  gateways:
+  - istio-system-gateway
+  hosts:
+  - "*"
+  http:
+  - match:
+    - headers:
+        user-agent:
+          prefix: GoogleHC
+      method:
+        exact: GET
+      uri:
+        exact: /
+    rewrite:
+      authority: istio-ingressgateway.istio-system.svc.cluster.local:15020
+      uri: /healthz/ready
+    route:
+    - destination:
+        host: istio-ingressgateway.istio-system.svc.cluster.local
+        port:
+          number: 15020
+EOF
+```
+
+### 3-1, 3-2
+```sh
+cat <<EOF > istio-ingressgateway-patch.json
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "NodePort"
+  },
+  {
+    "op": "remove",
+    "path": "/status"
+  }
+]
+EOF
+kubectl -n istio-system patch svc istio-ingressgateway \
+    --type=json -p="$(cat istio-ingressgateway-patch.json)" \
+    --dry-run=true -o yaml | kubectl apply -f -
+kubectl annotate svc istio-ingressgateway -n istio-system cloud.google.com/neg='{"exposed_ports": {"80":{}}}'
+```
+
+### 3-3. Creating a Kubernetes Ingress object
+
+* HTTP
+```bash
+kubectl apply -f - <<EOF
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress-http
+  namespace: istio-system
+spec:
+  backend:
+    serviceName: istio-ingressgateway
+    servicePort: 80
+EOF
+```
+
+```bash
+kubectl get ingress -n istio-system
+INGRESS_NM="my-ingress-http"
+INGRESS_IP=$(kubectl get ingress ${INGRESS_NM} -n istio-system \
+    --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
 
 ## 4. Install `KFServing`
 
@@ -108,10 +186,10 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: my-ingress-http
-  namespace: gke-system
+  namespace: istio-system
 spec:
   backend:
-    serviceName: istio-ingress
+    serviceName: istio-ingressgateway
     servicePort: 80
 EOF
 ```
