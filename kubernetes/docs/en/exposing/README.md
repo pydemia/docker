@@ -474,7 +474,7 @@ curl: (6) Could not resolve host: sayhello-service-externalname.default.svc.clus
 :warning: It cannot be resolved **because any DNS doesn't find a proper IP address for that name.**
 We can use `Ingress` and give a proper domain name for that type of service.
 
-### `Ingress`: an unified URL Endpoint for Kubernetes Cluster
+### `Ingress`: an unified URL Endpoint for Multiple Backend Services
 
 Not multiple Endpoints, use `Ingress` to manage.
 
