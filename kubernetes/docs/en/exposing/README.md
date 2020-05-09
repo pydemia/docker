@@ -116,6 +116,9 @@ pod "debug2" deleted
 
 ### `ClusterIP`: using an app(it can be a set of *Pods*) inside.
 
+| ![](clusterip.jpg) |
+| ----- |
+
 `sayhello-service-clusterip.yaml`
 ```yaml
 kubectl apply -f - <<EOF
@@ -174,6 +177,9 @@ sayhello-service-clusterip   10.56.0.14:8080,10.56.2.9:8080   163m
 ```
 
 ### `NodePort`: using an app(it can be a set of *Pods*) through *Nodes*.
+
+| ![](nodeport.jpg) |
+| ----- |
 
 `sayhello-service-nodeport.yaml`
 ```yaml
@@ -279,6 +285,9 @@ There is a two options:
 
 
 ### `LoadBalancer`: allowed way to access `NodePort`
+
+| ![](loadbalancer.jpg) |
+| ----- |
 
 `sayhello-service-loadbalancer.yaml`
 ```yaml
@@ -416,6 +425,8 @@ $ kubectl expose deployment \
     #--external-ip
 ```
 
+---
+
 ### `ExternalName`: A groundwork for `Ingress`
 
 `sayhello-service-externalname.yaml`
@@ -463,4 +474,9 @@ curl: (6) Could not resolve host: sayhello-service-externalname.default.svc.clus
 :warning: It cannot be resolved **because any DNS doesn't find a proper IP address for that name.**
 We can use `Ingress` and give a proper domain name for that type of service.
 
-### Ingress
+### `Ingress`: an unified URL Endpoint for Kubernetes Cluster
+
+Not multiple Endpoints, use `Ingress` to manage.
+
+| ![]() |
+| ----- |
