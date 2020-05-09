@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seyhello-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sayhello
+  template:
+    metadata:
+      name: sayhello-8080server
+      labels:
+        app: sayhello
+    spec:
+      containers:
+      - name: hello
+        image: "gcr.io/google-samples/hello-app:2.0"
+        ports:
+        - containerPort: 8080

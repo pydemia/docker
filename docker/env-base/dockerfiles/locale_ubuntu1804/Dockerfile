@@ -43,6 +43,8 @@ ENV LC_ALL=ko_KR.UTF-8
 USER root
 RUN sed -i 's/^auth       sufficient   pam_shells.so/auth       required   pam_shells.so/' /etc/pam.d/chsh
 
+# Clean up `apt cache`
+RUN rm -rf /var/lib/apt/lists
 
 USER pydemia
 WORKDIR /home/pydemia

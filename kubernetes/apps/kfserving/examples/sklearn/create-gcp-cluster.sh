@@ -8,9 +8,17 @@ CLUSTER_NM="kfserving-dev"
 REGION="us-central1"
 #ZONE="us-central1-a"
 CLUSTER_VERSION="1.15.9-gke.24"
-MASTER_IPV4_CIDR="192.168.1.32/28"
-CLUSTER_IPV4_CIDR="10.0.0.0/14"  # The IP address range for the pods in this cluster
-SERVICE_IPV4_CIDR="172.16.0.0/16"  # Set the IP range for the services IPs. Can be specified as a netmask size (e.g. '/20') or as in CIDR notion (e.g. '10.100.0.0/20').  Can not be specified unless '--enable-ip-alias' is also specified.
+MASTER_IPV4_CIDR="172.31.1.32/28"
+
+# -- Weird: Not for VMs in subnet, but both crashes with subnet CIDR.
+# Message: 
+# Retry budget exhausted (80 attempts): 
+# Requested CIDR 192.168.0.0/16 for pods is not available in network "yjkim-vpc" for cluster
+# Requested CIDR 172.16.0.0/16 for services is not available in network "yjkim-vpc" for cluster
+
+#CLUSTER_IPV4_CIDR="10.0.0.0/14"  # The IP address range for the pods in this cluster
+#SERVICE_IPV4_CIDR="172.16.0.0/16"  # Set the IP range for the services IPs. Can be specified as a netmask size (e.g. '/20') or as in CIDR notion (e.g. '10.100.0.0/20').  Can not be specified unless '--enable-ip-alias' is also specified.
+
 DISK_TYPE="pd-standard"  #  pd-standard, pd-ssd
 DISK_SIZE="100GB"  # default: 100GB
 IMAGE_TYPE="UBUNTU"  # COS, UBUNTU, COS_CONTAINERD, UBUNTU_CONTAINERD, WINDOWS_SAC, WINDOWS_LTSC (gcloud container get-server-config)
@@ -42,7 +50,7 @@ MACHINE_TYPE="n1-standard-4" # 4CPUs, 16GB (gcloud compute machine-types list) <
 # --reservation-affinity=RESERVATION_AFFINITY
 # The type of the reservation for the default initial node pool. RESERVATION_AFFINITY must be one of: any, none, specific.
 #NODE_POOL="ubuntu-cpu"
-NUM_NODES="2"  # The number of nodes to be created in each of the cluster's zones. default: 3
+NUM_NODES="1"  # The number of nodes to be created in each of the cluster's zones. default: 3
 MIN_NODES="0"  # Minimum number of nodes in the node pool. Ignored unless `--enable-autoscaling` is also specified.
 MAX_NODES="2" # Maximum number of nodes in the node pool. Ignored unless `--enable-autoscaling` is also specified.
 MAX_NODES_PER_POOL="100"  # Defaults to 1000 nodes, but can be set as low as 100 nodes per pool on initial create.
@@ -72,8 +80,6 @@ gcloud beta container clusters create \
     --enable-private-nodes \
     --no-enable-master-authorized-networks \
     --master-ipv4-cidr=$MASTER_IPV4_CIDR \
-    --cluster-ipv4-cidr=$CLUSTER_IPV4_CIDR \
-    --services-ipv4-cidr=$SERVICE_IPV4_CIDR \
     --disk-type=$DISK_TYPE \
     --disk-size=$DISK_SIZE \
     --image-type=$IMAGE_TYPE \
@@ -118,8 +124,8 @@ gcloud beta container clusters create \
 #     # --enable-master-authorized-networks \
 #     #   --master-authorized-networks=SOURCE_NETWORK_CIDRS \
 #     --master-ipv4-cidr=$MASTER_IPV4_CIDR \
-#     --cluster-ipv4-cidr=$CLUSTER_IPV4_CIDR \
-#     --services-ipv4-cidr=$SERVICE_IPV4_CIDR \
+#     #--cluster-ipv4-cidr=$CLUSTER_IPV4_CIDR \
+#     #--services-ipv4-cidr=$SERVICE_IPV4_CIDR \
 #     --disk-type=$DISK_TYPE \
 #     --disk-size=$DISK_SIZE \
 #     --image-type=$IMAGE_TYPE \
