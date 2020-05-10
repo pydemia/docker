@@ -41,9 +41,11 @@
 
   * [**Exposing**](exposing/README.md)
     * [**Service**](): An Abstract way to expose APPs, running on a set of Pods.
-      * `ClusterIP` type: within Cluster
-      * `NodePort` type: rely on Node, if Node(VM) IP is accessible
-      * `LoadBalancer` type: by given (IP, DomainName) in Cloud
+      * `ClusterIP`: within Cluster
+      * `NodePort`: rely on Node, if Node(VM) IP is accessible
+      * `LoadBalancer`: by given (IP, DomainName) in Cloud
+      * `ExternalName`: bygiven DNS name
+      * `Headless`: Service without `ClusterIP`
     * [**Ingress**](): L7 with LoadBalancer
 
 
