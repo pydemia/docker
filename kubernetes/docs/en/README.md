@@ -39,7 +39,7 @@
     * **CNI**: Container(Pod) Network Interface(L3 or L2 Overlay Network)
     * [**LoadBalancing**](): to Expose Services
 
-  * [Exposing](exposing/README.md)
+  * [**Exposing**](exposing/README.md)
     * [**Service**](): An Abstract way to expose APPs, running on a set of Pods.
       * `ClusterIP` type: within Cluster
       * `NodePort` type: rely on Node, if Node(VM) IP is accessible
