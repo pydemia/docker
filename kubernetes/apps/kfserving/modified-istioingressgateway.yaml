@@ -1,0 +1,43 @@
+
+```yaml
+# # ~~Serve Multiple Apps on ONE LoadBalancer~~
+# kubectl apply -f - <<EOF
+# apiVersion: networking.k8s.io/v1beta1
+# # Ingress
+# kind: Ingress
+# metadata:
+#   name: kfserving-ingress
+#   namespace: istio-system
+#   annotations:
+#     #### If `ingress.class` is not given, default ingress-controller of cloud service will be assigned.(In this case, GKE or Istio)
+#     # kubernetees.io/ingress.class: "nginx"
+# spec:
+#   rules:
+#   # Under `rules`, Multiple `host`s can be defined.
+#   # host: somehost
+#   - http:
+#       paths:
+#         ################ ServiceName: INDIRECT WAY, using PATH `/sayhello-nodeport/`
+#       - path: /pydemia/*
+#         backend:
+#           serviceName: inference-pydemia
+#           servicePort: 80
+#         ################ ServiceName: INDIRECT WAY, using PATH `/sayhello-service-for-ingress/`
+#       - path: /pavin/*
+#         backend:
+#           serviceName: inference-pavin
+#           servicePort: 80
+#       - path: /suminseo/*
+#         backend:
+#           serviceName: inference-suminseo
+#           servicePort: 80
+#       - path: /freepsw/*
+#         backend:
+#           serviceName: inference-freepsw
+#           servicePort: 80
+#       - path: /zoonablue/*
+#         backend:
+#           serviceName: inference-zoonablue
+#           servicePort: 80
+# EOF
+```

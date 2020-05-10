@@ -60,7 +60,7 @@ Version: 2.0.0
 Hostname: efec64468928
 ```
 
-### Deployment for `sayhello` app
+### Groundwork: Deployment for `sayhello` app
 
 ```yaml
 kubectl apply -f - <<EOF
@@ -111,13 +111,14 @@ Hostname: sayhello-deployment-db9bc6b9f-n42tv
 pod "debug2" deleted
 ```
 
+---
 
 ### `ClusterIP`: using an app(it can be a set of *Pods*) inside.
 
 | ![](clusterip.jpg) |
 | ----- |
 
-`sayhello-service-clusterip.yaml`
+`sayhello-service-clusterip.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -151,14 +152,20 @@ sayhello-service-clusterip   ClusterIP   10.187.6.190   <none>        80/TCP    
 Access it, using `CLUSTER-IP=10.187.6.190` and Service `NAME`:
 ```sh
 # CLUSTER-IP=10.187.6.190
-$ kubectl run -i --tty --rm debug1 --image=marketplace.gcr.io/google/ubuntu1804 --restart=Never -- curl 10.187.6.190:80
+$ kubectl run -i --tty --rm debug1 \
+    --image=marketplace.gcr.io/google/ubuntu1804 \
+    --restart=Never -- \
+    curl 10.187.6.190:80
 Hello, world!
 Version: 2.0.0
 Hostname: sayhello-deployment-db9bc6b9f-n42tv
 pod "debug1" deleted
 
 # Service Name
-$ kubectl run -i --tty --rm debug2 --image=marketplace.gcr.io/google/ubuntu1804 --restart=Never -- curl sayhello-service-clusterip:80
+$ kubectl run -i --tty --rm debug2 \
+    --image=marketplace.gcr.io/google/ubuntu1804 \
+    --restart=Never -- \
+    curl sayhello-service-clusterip:80
 Hello, world!
 Version: 2.0.0
 Hostname: sayhello-deployment-db9bc6b9f-bqf9t
@@ -174,12 +181,14 @@ kubernetes                   172.31.1.34:443                  15h
 sayhello-service-clusterip   10.56.0.14:8080,10.56.2.9:8080   163m
 ```
 
+---
+
 ### `NodePort`: using an app(it can be a set of *Pods*) through *Nodes*.
 
 | ![](nodeport.jpg) |
 | ----- |
 
-`sayhello-service-nodeport.yaml`
+`sayhello-service-nodeport.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -281,13 +290,14 @@ There is a two options:
   * Direct way: Each Service has **HTTP/s Endpoint** of Cloud Provider, by using `LoadBalancer(HTTP or TCP/UDP)` type.
   * Indirect way: Use `Ingress` object to manage All incoming requests together, as unified.
 
+---
 
 ### `LoadBalancer`: allowed way to access `NodePort`
 
 | ![](loadbalancer.jpg) |
 | ----- |
 
-`sayhello-service-loadbalancer.yaml`
+`sayhello-service-loadbalancer.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -344,10 +354,11 @@ Hello, world!
 Version: 2.0.0
 Hostname: sayhello-deployment-db9bc6b9f-n42tv
 ```
+---
 
 ### (Optional) Network LoadBalancer(TCP/UDP LoadBalancer)
 
-`sayhello-service-networkloadbalancer.yaml`
+`sayhello-service-networkloadbalancer.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -427,9 +438,9 @@ $ kubectl expose deployment \
 
 ---
 
-### `ExternalName`: A groundwork for `Ingress`
+### `ExternalName`: A Forwarding Service to call from `OUTSIDE`
 
-`sayhello-service-externalname.yaml`
+`sayhello-service-externalname.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -440,15 +451,13 @@ spec:
   selector:
     app: sayhello
   ports:
-  - name: webport
+  - name: mysql-userdb
     protocol: TCP
-    ################ custom port, not in (80, 8080, 443)
-    port: 51478
-    # targetPort: Deployed Container's Port = containerPort
-    targetPort: 8080
-  # LoadBalancer(IP) -> ExternalName(DNS Name)
+    port: 33060
+    targetPort: 3306
+  # LoadBalancer -> ExternalName
   type: ExternalName
-  externalName: sayhello-service-externalname.default.svc.cluster.local
+  externalName: mysql-userdb.pydemia.org
 EOF
 ```
 
@@ -457,25 +466,25 @@ $ kubectl apply -f sayhello-service-externalname.yaml
 service/sayhello-service-externalname created
 
 $ kubectl get svc
-NAME                                   TYPE           CLUSTER-IP     EXTERNAL-IP                                               PORT(S)           AGE
-kubernetes                             ClusterIP      10.187.0.1     <none>                                                    443/TCP           18h
-sayhello-service-clusterip             ClusterIP      10.187.6.190   <none>                                                    80/TCP            4h58m
-sayhello-service-externalname          ExternalName   <none>         sayhello-service-externalname.default.svc.cluster.local   51478/TCP         58s
-sayhello-service-loadbalancer          LoadBalancer   10.187.12.31   35.223.25.173                                             80:32146/TCP      48m
-sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20    35.184.44.79                                              63214:32078/TCP   33m
-sayhello-service-nodeport              NodePort       10.187.5.22    <none>                                                    80:30983/TCP      121m
+NAME                                   TYPE           CLUSTER-IP      EXTERNAL-IP                PORT(S)           AGE
+kubernetes                             ClusterIP      10.187.0.1      <none>                     443/TCP           41h
+sayhello-service-clusterip             ClusterIP      10.187.6.190    <none>                     80/TCP            28h
+sayhello-service-externalname          ExternalName   <none>          mysql-userdb.pydemia.org   33060/TCP         23h
+sayhello-service-loadbalancer          LoadBalancer   10.187.12.31    35.223.25.173              80:32146/TCP      24h
+sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20     35.184.44.79               63214:32078/TCP   24h
+sayhello-service-nodeport              NodePort       10.187.5.22     <none>                     80:30983/TCP      25h
+
+# EXTERNAL-IP: mysql-userdb.pydemia.org
+# PORT: 33060
 ```
+:white_check_mark: **Now `Pods` can call external addresses from cluster inside,** without NAT. 
+**`ExternalName` is for `Pods` to request to outside**, not requests from cluster outside.  
+(Pods cannot access external services by default.)
 
-:bell:**Note**: ExternalName accepts an IPv4 address string, but as a DNS names comprised of digits, not as an IP address. ExternalNames that resemble IPv4 addresses are not resolved by CoreDNS or ingress-nginx because ExternalName is intended to specify a canonical DNS name. To hardcode an IP address, consider using headless Services.
 
-```sh
-$ curl sayhello-service-externalname.default.svc.cluster.local
-curl: (6) Could not resolve host: sayhello-service-externalname.default.svc.cluster.local
-```
+:bell:**Note**: `ExternalName` accepts an IPv4 address string, but as a DNS names comprised of digits, not as an IP address. `ExternalNames` that resemble IPv4 addresses are not resolved by `CoreDNS` or `ingress-nginx` because `ExternalName` is intended to specify a canonical DNS name. To hardcode an IP address, consider using `headless Services`.
 
-:no_entry: It cannot be resolved **because any DNS doesn't find a proper IP address for that name.**
-We can use `Ingress` and give a proper domain name for that type of service.
-
+---
 ### `Ingress`: an unified URL Endpoint for Multiple Backend Services
 
 Not multiple Endpoints, use `Ingress` to manage.
@@ -497,7 +506,7 @@ Not multiple Endpoints, use `Ingress` to manage.
 > An **internet NEG** contains a single endpoint that is hosted outside of Google Cloud. This endpoint is specified by hostname `FQDN:port` or `IP:port`.
 
 
-`sayhello-service-for-ingress.yaml`
+`sayhello-service-for-ingress.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -524,19 +533,19 @@ $ kubectl apply -f sayhello-service-for-ingress.yaml
 service/sayhello-service-for-ingress created
 
 $ kubectl get svc
-NAME                                   TYPE           CLUSTER-IP      EXTERNAL-IP                                               PORT(S)           AGE
-kubernetes                             ClusterIP      10.187.0.1      <none>                                                    443/TCP           31h
-sayhello-service-clusterip             ClusterIP      10.187.6.190    <none>                                                    80/TCP            18h
-sayhello-service-externalname          ExternalName   <none>          sayhello-service-externalname.default.svc.cluster.local   51478/TCP         13h
-sayhello-service-for-ingress           NodePort       10.187.10.172   <none>                                                    80:32740/TCP      10s
-sayhello-service-loadbalancer          LoadBalancer   10.187.12.31    35.223.25.173                                             80:32146/TCP      13h
-sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20     35.184.44.79                                              63214:32078/TCP   13h
-sayhello-service-nodeport              NodePort       10.187.5.22     <none>                                                    80:30983/TCP      15h
+NAME                                   TYPE           CLUSTER-IP      EXTERNAL-IP                PORT(S)           AGE
+kubernetes                             ClusterIP      10.187.0.1      <none>                     443/TCP           41h
+sayhello-service-clusterip             ClusterIP      10.187.6.190    <none>                     80/TCP            28h
+sayhello-service-externalname          ExternalName   <none>          mysql-userdb.pydemia.org   33060/TCP         23h
+sayhello-service-for-ingress           NodePort       10.187.10.172   <none>                     80:32740/TCP      10h
+sayhello-service-loadbalancer          LoadBalancer   10.187.12.31    35.223.25.173              80:32146/TCP      24h
+sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20     35.184.44.79               63214:32078/TCP   24h
+sayhello-service-nodeport              NodePort       10.187.5.22     <none>                     80:30983/TCP      25h
 ```
 
 Then, Create an DIRECT `Ingress` Resource:
 
-`sayhello-ingress.yaml`
+`sayhello-ingress.yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: networking.k8s.io/v1beta1
@@ -648,7 +657,7 @@ metadata:
   name: sayhello-ingress
   ###############################################################
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: "sayhello-static-ip"
+    kubernetes.io/ingress.global-static-ip-name: "xx.xxx.x.xxx"
 spec:
   backend:
     ################ ServiceName: DIRECT WAY 
@@ -659,7 +668,7 @@ EOF
 
 #### Serve Multiple Apps on ONE LoadBalancer
 
-`sayhello-ingress-multiservice-with-multipath..yaml`
+`sayhello-ingress-multiservice-with-multipath..yaml`:
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: networking.k8s.io/v1beta1
@@ -745,7 +754,8 @@ Version: 2.0.0
 Hostname: sayhello-deployment-db9bc6b9f-bqf9t
 ```
 
-#### Health Check with Readiness
+---
+#### Health Check with `readinessProbe`(or `livenessProbe`)
 
 :warning: By default, `Ingress` performs **a periodic health check** by making a `GET` request on the `/` path to determine health of the application, and expects *HTTP 200 response*. If you want to check a different path or to expect a different response code, you can use **a custom health check path**.
 
@@ -788,17 +798,16 @@ EOF
 ```
 
 :bell:**Note**: If the Deployment is **configured or scaled to `0` Pods**, the HTTP readiness probe's path is set to `/`, **regardless of the value of `readinessProbe.path`.**
+<br>
 
-##### Option 2. (In `Istio`) Use [`Istio VirtualService`](https://istio.io/docs/concepts/traffic-management/#virtual-services) `readinessProbe` to Pods.
 
+##### Option 2. (In `Istio`) Use [`Istio VirtualService`](https://istio.io/docs/concepts/traffic-management/#virtual-services), `readinessProbe` to Pods.
 
----
-
-Istio Docs
+Prerequisite: `Istio`
 
 <https://istio.io/docs/ops/configuration/mesh/app-health-check/>
 
-2-1. readinessProbe with Command
+###### 2-1. `readinessProbe` with Command
 
 ```sh
 $ kubectl create ns "istio-healthcheck"
@@ -830,21 +839,23 @@ spec:
 EOF
 ```
 
+<br>
+
+###### 2-2. `readinessProbe` with HTTP request
+
+1. Set `Istio` with `values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true`
+2. Annotate to `Pods`: `annotations: sidecar.istio.io/rewriteAppHTTPProbers: "true"`
 
 
 
-
-2-2. readinessProbe with HTTP request
-
-`values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true` and Annotate to Pods
-
-* Install `Istio` with `--set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true` or
-* Re-configure with the following:
+* Set `Istio`:
+  * Install `Istio` with `--set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true` or
+  * Re-configure with the following:
 ```sh
 $ kubectl get cm istio-sidecar-injector -n istio-system -o yaml | sed -e 's/"rewriteAppHTTPProbe": false/"rewriteAppHTTPProbe": true/' | kubectl apply -f -
 ```
 
-Then, Re-deploy to ANNOTATE to Pods with `sidecar.istio.io/rewriteAppHTTPProbers: "true"`
+Or, you can re-deploy to **ANNOTATE** to Pods with `sidecar.istio.io/rewriteAppHTTPProbers: "true"`
 
 ```yaml
 kubectl apply -f - <<EOF
@@ -884,85 +895,3 @@ spec:
           failureThreshold: 30
 EOF
 ```
-
-2-3. In Google
-
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: health
-  namespace: knative-serving
-spec:
-  gateways:
-  - gke-system-gateway
-  hosts:
-  - "*"
-  http:
-  - match:
-    - headers:
-        user-agent:
-          prefix: GoogleHC
-      method:
-        exact: GET
-      uri:
-        exact: /
-    rewrite:
-      authority: istio-ingress.gke-system.svc.cluster.local:15020
-      uri: /healthz/ready
-    route:
-    - destination:
-        host: istio-ingress.gke-system.svc.cluster.local
-        port:
-          number: 15020
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: sayhello-healthcheck
-spec:
-  hosts:
-  - "*"
-  http:
-  - match:
-    - uri:
-        prefix: /sayhello-service-nodeport
-      # headers:
-      #   end-user:
-      #     exact: pydemia
-    rewrite:
-      uri: /healthy
-    route:
-    - destination:
-        host: sayhello-service-nodeport
-        port:
-          number: 80
-  - match:
-    - uri:
-        prefix: /v2
-    route:
-    - destination:
-        host: sayhello-service-for-ingress
-        port:
-          number: 80
-```
-
-:white_check_mark:
-:no_entry:
-
-:heavy_check_mark: :white_check_mark:
-:x: :no_entry:
-:warning:
-
-:bulb: :bell:
-:speech_balloon:
-:star: :zap:
-:grey_question:
-
-:+1:
-:-1:
-:trophy:
-
-
-| ![]() |
-| ----- |
