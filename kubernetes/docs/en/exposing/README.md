@@ -62,11 +62,6 @@ Hostname: efec64468928
 
 ### Deployment for `sayhello` app
 
-```sh
-$ kubectl apply -f sayhello-deployment.yaml
-deployment.apps/sayhello-deployment created
-```
-
 ```yaml
 kubectl apply -f - <<EOF
 apiVersion: apps/v1
@@ -93,6 +88,9 @@ EOF
 ```
 
 ```sh
+$ kubectl apply -f sayhello-deployment.yaml
+deployment.apps/sayhello-deployment created
+
 $ kubectl get pods -o wide
 NAME                                  READY   STATUS    RESTARTS   AGE     IP
 sayhello-deployment-db9bc6b9f-bqf9t   1/1     Running   0          21s     10.56.0.14
@@ -315,6 +313,7 @@ EOF
 $ kubectl apply -f sayhello-service-loadbalancer.yaml
 service/sayhello-service-loadbalancer created
 
+########## <pending>: Work-in-progress, HTTP/s LoadBalancer is creating...
 $ kubectl get svc
 NAME                            TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
 kubernetes                      ClusterIP      10.187.0.1     <none>        443/TCP        17h
@@ -322,8 +321,8 @@ sayhello-service-clusterip      ClusterIP      10.187.6.190   <none>        80/T
 sayhello-service-loadbalancer   LoadBalancer   10.187.12.31   <pending>     80:32146/TCP   19s
 sayhello-service-nodeport       NodePort       10.187.5.22    <none>        80:30983/TCP   73m
 
-# <pending>: Work-in-progress, HTTP/s LoadBalancer is creating...
 
+########## SUCCESS!
 $ kubectl get svc
 NAME                            TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
 kubernetes                      ClusterIP      10.187.0.1     <none>          443/TCP        17h
@@ -382,7 +381,6 @@ sayhello-service-loadbalancer          LoadBalancer   10.187.12.31   35.223.25.1
 sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20    35.184.44.79    63214:32078/TCP   57s
 sayhello-service-nodeport              NodePort       10.187.5.22    <none>          80:30983/TCP      89m
 ```
-gcloud compute url-maps list
 
 Access it, **ANYWHERE**:
 ```sh
@@ -399,6 +397,8 @@ $ gcloud compute forwarding-rules list| grep '35.184.44.79\|35.223.25.173'
 NAME                REGION       IP_ADDRESS      IP_PROTOCOL  TARGET
 b35ea881cff         us-central1  35.223.25.173   TCP          us-central1/targetPools/a191dc88
 8b4c1b84cd5         us-central1  35.184.44.79    TCP          us-central1/targetPools/a9c76274
+
+# gcloud compute url-maps list
 ```
 
 ### use `kubectl expose`:
@@ -446,7 +446,7 @@ spec:
     port: 51478
     # targetPort: Deployed Container's Port = containerPort
     targetPort: 8080
-  # LoadBalancer
+  # LoadBalancer(IP) -> ExternalName(DNS Name)
   type: ExternalName
   externalName: sayhello-service-externalname.default.svc.cluster.local
 EOF
@@ -466,17 +466,503 @@ sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20    35.184.44.7
 sayhello-service-nodeport              NodePort       10.187.5.22    <none>                                                    80:30983/TCP      121m
 ```
 
+:bell:**Note**: ExternalName accepts an IPv4 address string, but as a DNS names comprised of digits, not as an IP address. ExternalNames that resemble IPv4 addresses are not resolved by CoreDNS or ingress-nginx because ExternalName is intended to specify a canonical DNS name. To hardcode an IP address, consider using headless Services.
+
 ```sh
 $ curl sayhello-service-externalname.default.svc.cluster.local
 curl: (6) Could not resolve host: sayhello-service-externalname.default.svc.cluster.local
 ```
 
-:warning: It cannot be resolved **because any DNS doesn't find a proper IP address for that name.**
+:no_entry: It cannot be resolved **because any DNS doesn't find a proper IP address for that name.**
 We can use `Ingress` and give a proper domain name for that type of service.
 
 ### `Ingress`: an unified URL Endpoint for Multiple Backend Services
 
 Not multiple Endpoints, use `Ingress` to manage.
+
+| ![]() |
+| ----- |
+
+  * Ingress for External LoadBalancing
+  * Ingress for Internal LoadBalancing
+
+
+#### Container-native LoadBalancing: A direct way to expose Pod Endpoints using NEGs(Network Endpoint Groups)
+
+> [**NEG(Network Endpoint Group)**](https://cloud.google.com/load-balancing/docs/negs)
+> NEGs define how a set of endpoints should be reached, whether they are reachable, and where they are located.
+> 
+> A **zonal NEG** contains one or more endpoints that can be Compute Engine VMs or services running on the VMs. Each endpoint is specified as an `IP:port` combination.
+> 
+> An **internet NEG** contains a single endpoint that is hosted outside of Google Cloud. This endpoint is specified by hostname `FQDN:port` or `IP:port`.
+
+
+`sayhello-service-for-ingress.yaml`
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: sayhello-service-for-ingress
+spec:
+  selector:
+    app: sayhello
+  ports:
+  - name: webport
+    protocol: TCP
+    # port: Port that Service will be using
+    port: 80
+    # targetPort: Deployed Container's Port = containerPort
+    targetPort: 8080
+  ################ NodePort
+  type: NodePort
+EOF
+```
+
+```sh
+$ kubectl apply -f sayhello-service-for-ingress.yaml
+service/sayhello-service-for-ingress created
+
+$ kubectl get svc
+NAME                                   TYPE           CLUSTER-IP      EXTERNAL-IP                                               PORT(S)           AGE
+kubernetes                             ClusterIP      10.187.0.1      <none>                                                    443/TCP           31h
+sayhello-service-clusterip             ClusterIP      10.187.6.190    <none>                                                    80/TCP            18h
+sayhello-service-externalname          ExternalName   <none>          sayhello-service-externalname.default.svc.cluster.local   51478/TCP         13h
+sayhello-service-for-ingress           NodePort       10.187.10.172   <none>                                                    80:32740/TCP      10s
+sayhello-service-loadbalancer          LoadBalancer   10.187.12.31    35.223.25.173                                             80:32146/TCP      13h
+sayhello-service-networkloadbalancer   LoadBalancer   10.187.3.20     35.184.44.79                                              63214:32078/TCP   13h
+sayhello-service-nodeport              NodePort       10.187.5.22     <none>                                                    80:30983/TCP      15h
+```
+
+Then, Create an DIRECT `Ingress` Resource:
+
+`sayhello-ingress.yaml`
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: sayhello-ingress
+spec:
+  backend:
+    ################ ServiceName: DIRECT WAY 
+    serviceName: sayhello-service-for-ingress
+    servicePort: 80
+EOF
+```
+
+```sh
+$ kubectl apply -f sayhello-ingress.yaml
+ingress.networking.k8s.io/sayhello-ingress created
+
+$ kubectl get ingress  # {ingress, ing}
+NAME               HOSTS   ADDRESS   PORTS   AGE
+sayhello-ingress   *                 80      13s
+
+########## CASE 1. EMPTY ADDRESS: work-in-progress, LoadBalancer is creating...
+$ kubectl describe ingress sayhello-ingress
+Name:             sayhello-ingress
+Namespace:        default
+Address:          34.102.186.32
+Default backend:  sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           *     sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Annotations:  ingress.kubernetes.io/backends: {"k8s-be-32740--c9350a459bee8250":"Unknown"}
+              ingress.kubernetes.io/forwarding-rule: k8s-fw-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/target-proxy: k8s-tp-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/url-map: k8s-um-default-sayhello-ingress--c9350a459bee8250
+Events:
+  Type    Reason  Age   From                     Message
+  ----    ------  ----  ----                     -------
+  Normal  ADD     83s   loadbalancer-controller  default/sayhello-ingress
+  Normal  CREATE  33s   loadbalancer-controller  ip: 34.102.186.32
+
+##########
+########## CASE 2. BACKEND UNKNOWN State :
+##########         Unknown until the backend service receives traffic...
+##########         readinessProbe and HealthCheck(for service) can help!
+$ kubectl describe ingress sayhello-ingress
+Name:             sayhello-ingress
+Namespace:        default
+Address:          34.102.186.32
+Default backend:  sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           *     sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Annotations:  ingress.kubernetes.io/backends: {"k8s-be-32740--c9350a459bee8250":"Unknown"}
+              ingress.kubernetes.io/forwarding-rule: k8s-fw-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/target-proxy: k8s-tp-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/url-map: k8s-um-default-sayhello-ingress--c9350a459bee8250
+Events:
+  Type    Reason  Age    From                     Message
+  ----    ------  ----   ----                     -------
+  Normal  ADD     3m57s  loadbalancer-controller  default/sayhello-ingress
+  Normal  CREATE  3m7s   loadbalancer-controller  ip: 34.102.186.32
+
+
+########## SUCCESS! (~ about 8mins)
+$ kubectl describe ingress sayhello-ingress
+Name:             sayhello-ingress
+Namespace:        default
+Address:          34.102.186.32
+Default backend:  sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           *     sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Annotations:  ingress.kubernetes.io/backends: {"k8s-be-32740--c9350a459bee8250":"HEALTHY"}
+              ingress.kubernetes.io/forwarding-rule: k8s-fw-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/target-proxy: k8s-tp-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/url-map: k8s-um-default-sayhello-ingress--c9350a459bee8250
+Events:
+  Type    Reason  Age    From                     Message
+  ----    ------  ----   ----                     -------
+  Normal  ADD     7m55s  loadbalancer-controller  default/sayhello-ingress
+  Normal  CREATE  7m5s   loadbalancer-controller  ip: 34.102.186.32
+
+$ kubectl get ing
+NAME               HOSTS   ADDRESS         PORTS   AGE
+sayhello-ingress   *       34.102.186.32   80      8m42s
+```
+
+Access it, **ANYWHERE**:
+```sh
+$ curl 34.102.186.32:80
+Hello, world!
+Version: 2.0.0
+Hostname: sayhello-deployment-db9bc6b9f-n42tv
+```
+
+#### (Optional) Assign A Static IP to `Ingress`
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: sayhello-ingress
+  ###############################################################
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "sayhello-static-ip"
+spec:
+  backend:
+    ################ ServiceName: DIRECT WAY 
+    serviceName: sayhello-service-for-ingress
+    servicePort: 80
+EOF
+```
+
+#### Serve Multiple Apps on ONE LoadBalancer
+
+`sayhello-ingress-multiservice-with-multipath..yaml`
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: sayhello-ingress
+  annotations:
+    #### If `ingress.class` is not given, default ingress-controller of cloud service will be assigned.(In this case, GKE or Istio)
+    # kubernetees.io/ingress.class: "nginx"
+spec:
+  rules:
+  # Under `rules`, Multiple `host`s can be defined.
+  # host: somehost
+  - http:
+      paths:
+        ################ ServiceName: INDIRECT WAY, using PATH `/sayhello-nodeport/`
+      - path: /sayhello-nodeport/*
+        backend:
+          serviceName: sayhello-service-nodeport
+          servicePort: 80
+        ################ ServiceName: INDIRECT WAY, using PATH `/sayhello-service-for-ingress/`
+      - path: /v2/*
+        backend:
+          serviceName: sayhello-service-for-ingress
+          servicePort: 80
+EOF
+```
+
+```sh
+$ kubectl apply -f sayhello-ingress-multiservice-with-multipath.yaml
+ingress.networking.k8s.io/sayhello-ingress configured
+
+########## BACKEND UNKNOWN State: 
+##########         Unknown until the backend service receives traffic...
+##########         readinessProbe and HealthCheck(for service) can help!
+$ kubectl describe ing sayhello-ingress
+Name:             sayhello-ingress
+Namespace:        default
+Address:          34.102.186.32
+Default backend:  default-http-backend:80 (10.56.1.20:8080)
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           
+              /sayhello-nodeport/*   sayhello-service-nodeport:80 (10.56.0.14:8080,10.56.2.9:8080)
+              /v2/*                  sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Annotations:  ingress.kubernetes.io/backends:
+                {"k8s-be-30983--c9350a459bee8250":"Unknown","k8s-be-31878--c9350a459bee8250":"Unknown","k8s-be-32740--c9350a459bee8250":"HEALTHY"}
+              ingress.kubernetes.io/forwarding-rule: k8s-fw-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/target-proxy: k8s-tp-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/url-map: k8s-um-default-sayhello-ingress--c9350a459bee8250
+Events:       <none>
+
+########## SUCCESS!
+$ kubectl describe ing sayhello-ingress
+Name:             sayhello-ingress
+Namespace:        default
+Address:          34.102.186.32
+Default backend:  default-http-backend:80 (10.56.1.20:8080)
+Rules:
+  Host        Path  Backends
+  ----        ----  --------
+  *           
+              /sayhello-nodeport/*   sayhello-service-nodeport:80 (10.56.0.14:8080,10.56.2.9:8080)
+              /v2/*                  sayhello-service-for-ingress:80 (10.56.0.14:8080,10.56.2.9:8080)
+Annotations:  ingress.kubernetes.io/backends:
+                {"k8s-be-30983--c9350a459bee8250":"HEALTHY","k8s-be-31878--c9350a459bee8250":"HEALTHY","k8s-be-32740--c9350a459bee8250":"HEALTHY"}
+              ingress.kubernetes.io/forwarding-rule: k8s-fw-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/target-proxy: k8s-tp-default-sayhello-ingress--c9350a459bee8250
+              ingress.kubernetes.io/url-map: k8s-um-default-sayhello-ingress--c9350a459bee8250
+Events:       <none>
+
+
+$ curl 34.102.186.32/sayhello-nodeport/
+Hello, world!
+Version: 2.0.0
+Hostname: sayhello-deployment-db9bc6b9f-n42tv
+
+$ curl 34.102.186.32/sayhello-for-ingress/
+Hello, world!
+Version: 2.0.0
+Hostname: sayhello-deployment-db9bc6b9f-bqf9t
+```
+
+#### Health Check with Readiness
+
+:warning: By default, `Ingress` performs **a periodic health check** by making a `GET` request on the `/` path to determine health of the application, and expects *HTTP 200 response*. If you want to check a different path or to expect a different response code, you can use **a custom health check path**.
+
+##### Option 1. Apply `readinessProbe` to Pods.
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sayhello-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sayhello
+  template:
+    metadata:
+      name: sayhello-8080server
+      labels:
+        app: sayhello
+    spec:
+      containers:
+      - name: hello-container
+        image: "gcr.io/google-samples/hello-app:2.0"
+        ports:
+        - name: readiness-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthy
+            port: readiness-port
+            # httpHeaders:
+            # - name: Custom-Header
+            #   value: Awesome
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 30
+EOF
+```
+
+:bell:**Note**: If the Deployment is **configured or scaled to `0` Pods**, the HTTP readiness probe's path is set to `/`, **regardless of the value of `readinessProbe.path`.**
+
+##### Option 2. (In `Istio`) Use [`Istio VirtualService`](https://istio.io/docs/concepts/traffic-management/#virtual-services) `readinessProbe` to Pods.
+
+
+---
+
+Istio Docs
+
+<https://istio.io/docs/ops/configuration/mesh/app-health-check/>
+
+2-1. readinessProbe with Command
+
+```sh
+$ kubectl create ns "istio-healthcheck"
+namespace/istio-healthcheck created
+```
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: "default"
+  namespace: "istio-healthcheck"
+spec:
+  peers:
+  - mtls: {}
+
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "default"
+  namespace: "istio-healthcheck"
+spec:
+  host: "*.default.svc.cluster.local"
+  # trafficPolicy:
+  #   tls:
+  #     mode: ISTIO_MUTUAL
+EOF
+```
+
+
+
+
+
+2-2. readinessProbe with HTTP request
+
+`values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true` and Annotate to Pods
+
+* Install `Istio` with `--set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true` or
+* Re-configure with the following:
+```sh
+$ kubectl get cm istio-sidecar-injector -n istio-system -o yaml | sed -e 's/"rewriteAppHTTPProbe": false/"rewriteAppHTTPProbe": true/' | kubectl apply -f -
+```
+
+Then, Re-deploy to ANNOTATE to Pods with `sidecar.istio.io/rewriteAppHTTPProbers: "true"`
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sayhello-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sayhello
+  template:
+    metadata:
+      #################### Annotated
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+      name: sayhello-8080server
+      labels:
+        app: sayhello
+    spec:
+      containers:
+      - name: hello-container
+        image: "gcr.io/google-samples/hello-app:2.0"
+        ports:
+        - name: readiness-port
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthy
+            port: readiness-port
+            # httpHeaders:
+            # - name: Custom-Header
+            #   value: Awesome
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 30
+EOF
+```
+
+2-3. In Google
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: health
+  namespace: knative-serving
+spec:
+  gateways:
+  - gke-system-gateway
+  hosts:
+  - "*"
+  http:
+  - match:
+    - headers:
+        user-agent:
+          prefix: GoogleHC
+      method:
+        exact: GET
+      uri:
+        exact: /
+    rewrite:
+      authority: istio-ingress.gke-system.svc.cluster.local:15020
+      uri: /healthz/ready
+    route:
+    - destination:
+        host: istio-ingress.gke-system.svc.cluster.local
+        port:
+          number: 15020
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: sayhello-healthcheck
+spec:
+  hosts:
+  - "*"
+  http:
+  - match:
+    - uri:
+        prefix: /sayhello-service-nodeport
+      # headers:
+      #   end-user:
+      #     exact: pydemia
+    rewrite:
+      uri: /healthy
+    route:
+    - destination:
+        host: sayhello-service-nodeport
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /v2
+    route:
+    - destination:
+        host: sayhello-service-for-ingress
+        port:
+          number: 80
+```
+
+:white_check_mark:
+:no_entry:
+
+:heavy_check_mark: :white_check_mark:
+:x: :no_entry:
+:warning:
+
+:bulb: :bell:
+:speech_balloon:
+:star: :zap:
+:grey_question:
+
+:+1:
+:-1:
+:trophy:
+
 
 | ![]() |
 | ----- |

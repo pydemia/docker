@@ -14,4 +14,3 @@ spec:
     targetPort: 8080
   ################ ClusterIP -> NodePort
   type: LoadBalancer
-EOF

@@ -1,0 +1,10 @@
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: sayhello-ingress
+spec:
+  backend:
+    ################ ServiceName: DIRECT WAY 
+    serviceName: sayhello-service-for-ingress
+    servicePort: 80

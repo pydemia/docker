@@ -386,7 +386,7 @@ Prerequisite: [`istioctl`](../../istio/README.md#install-istioctl)
 
 
 * gRPC: <https://docs.microsoft.com/ko-kr/aspnet/core/grpc/comparison?view=aspnetcore-3.1>
-* gRPC & Envoy()<https://cloud.google.com/solutions/exposing-grpc-services-on-gke-using-envoy-proxy>
+* gRPC & Envoy <https://cloud.google.com/solutions/exposing-grpc-services-on-gke-using-envoy-proxy>
   * Comparison between AppLB and HTTPsLB: <https://cloud.google.com/solutions/exposing-grpc-services-on-gke-using-envoy-proxy#alternative_ways_to_route_grpc_traffic>
   * GKE gRPC Ingress LoadBalancing: <https://github.com/salrashid123/gcegrpc/tree/master/gke_ingress_lb>
 * External LoadBalancer in GKE: <https://cloud.google.com/kubernetes-engine/docs/concepts/network-overview#ext-lb>

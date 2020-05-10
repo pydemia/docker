@@ -14,4 +14,3 @@ spec:
     targetPort: 8080
   # LoadBalancer
   type: LoadBalancer
-EOF

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: sayhello-ingress
+spec:
+  rules:
+  - http:
+      paths:
+        ################ ServiceName: INDIRECT WAY, using PATH `/sayhello-nodeport/`
+      - path: /sayhello-nodeport/*
+        backend:
+          serviceName: sayhello-service-nodeport
+          servicePort: 80
+        ################ ServiceName: INDIRECT WAY, using PATH `/sayhello-service-for-ingress/`
+      - path: /v2/*
+        backend:
+          serviceName: sayhello-service-for-ingress
+          servicePort: 80

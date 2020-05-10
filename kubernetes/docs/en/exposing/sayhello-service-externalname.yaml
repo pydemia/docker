@@ -15,4 +15,3 @@ spec:
   # LoadBalancer
   type: ExternalName
   externalName: sayhello-service-externalname.default.svc.cluster.local
-EOF
