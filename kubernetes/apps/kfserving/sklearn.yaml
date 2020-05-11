@@ -2,6 +2,9 @@ apiVersion: "serving.kubeflow.org/v1alpha2"
 kind: "InferenceService"
 metadata:
   name: "sklearn-iris"
+  namespace: "inference-test"
+  labels:
+    serving.kubeflow.org/inferenceservice: enabled
 spec:
   default:
     predictor:

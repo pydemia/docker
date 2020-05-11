@@ -57,15 +57,15 @@ MAX_NODES_PER_POOL="100"  # Defaults to 1000 nodes, but can be set as low as 100
 MAX_PODS_PER_NODE="110"  # default=110, Must be used in conjunction with '--enable-ip-alias'.
 NETWORK="yjkim-vpc"  # "default" or VPC
 SUBNETWORK="yjkim-kube-subnet"
-TAGS="yjkim-kube-instance,"  # (https://cloud.google.com/compute/docs/labeling-resources), tag1,tag2
+TAGS="yjkim-kube-instance,yjkim-kube-istio"  # (https://cloud.google.com/compute/docs/labeling-resources), tag1,tag2
 SERVICE_ACCOUNT="yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com"
 
 WORKLOAD_POOL="${PROJECT_ID}.svc.id.goog" # Enable Workload Identity on the cluster. When enabled, Kubernetes service accounts will be able to act as Cloud IAM Service Accounts, through the provided workload pool. Currently, the only accepted workload pool is the workload pool of the Cloud project containing the cluster, `PROJECT_ID.svc.id.goog.`
 #--security-group=SECURITY_GROUP  # The name of the RBAC security group for use with Google security groups in Kubernetes RBAC (https://kubernetes.io/docs/reference/access-authn-authz/rbac/). If unspecified, no groups will be returned for use with RBAC.
 ISTIO_CONFIG="auth=MTLS_PERMISSIVE"
 METADATA="disable-legacy-endpoints=true"
-LABELS="cz_owner=youngju_kim,application=kubeflow"
-DESCRIPTION="A testbed Kubernetes cluster;for Kubeflow, KFServing, NVIDIA Runtime, etc."
+LABELS="cz_owner=youngju_kim,application=kfserving"
+DESCRIPTION="A testbed Kubernetes cluster;for KFServing InferenceService."
 SOURCE_NETWORK_CIDRS=""
 
 gcloud beta container clusters create \
@@ -101,7 +101,7 @@ gcloud beta container clusters create \
     --enable-shielded-nodes \
     --metadata=$METADATA \
     --labels=$LABELS \
-    --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,CloudRun,ApplicationManager \
+    --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,ApplicationManager \
     --istio-config=$ISTIO_CONFIG \
     --scopes="gke-default"
 

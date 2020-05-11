@@ -222,11 +222,11 @@ kubectl apply -f - <<EOF
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: my-ingress-http
+  name: kfsering-ingress-http
   namespace: istio-system
 spec:
   backend:
-    serviceName: istio-ingressgateway
+    serviceName: istio-ingress
     servicePort: 80
 EOF
 ```
