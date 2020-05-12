@@ -5,117 +5,55 @@
 `KFServing: v0.3.0`
 
 * Prerequisite:
-  * `Istio: v1.1.6+`(`v1.3.1+` for `dex`) -> 1.3.1
+  * `Istio: v1.1.6+`(`v1.3.1+` for `dex`) -> 1.4.1
   * `Cert Manager: v1.12.0+`
   * `Knative Serving: v0.11.1+`
 
 ---
-
-### Install `Istio`
-
-In GKE, we can install `Istio` with Add-ons.
+First,
 ```sh
-$ gcloud beta container clusters create \
-    ...
-    --addons HttpLoadBalancing,Istio,... \
-    --istio-config=$ISTIO_CONFIG \
-    ...
-```
-| ![](../istio/gke-istio-vanilla.png) |
-| ----- |
-
-:warning: But, there is `Third-party` extras in `Knative`. [Read the post.](https://medium.com/google-cloud/how-to-properly-install-knative-on-gke-f39a1274cd4f)
-If you need `Knative==0.12` and `Istio==1.3.6`, **You should install those FIRST, with a proper version.**
-**Then, the required `Istio` version for `Knative` is differ from `GKE`.**
-
-<https://github.com/knative/serving/tree/master/third_party>
-| ![](../knative/knative-third-party-0.13.png) |
-| ----- |
-| ![](../istio/gke-istio-version.png) |
-
-### Install `Cert-Manager`
-
-:warning::zap:Requirement: `NAT gateway` for `cert-manager-webhook`
-
-<https://cert-manager.io/docs/installation/kubernetes/>
-
-**Note**: If you are running `Kubernetes v1.15.4 or below`, you will need to add the `--validate=false` flag to your kubectl apply command above else you will receive a validation error relating to the `x-kubernetes-preserve-unknown-fields` field in cert-manager’s `CustomResourceDefinition` resources. This is a benign error and occurs due to the way `kubectl` performs resource validation.
-
-```bash
-# cert-manager >= 0.14.3, Kubernetes >= 1.15
-curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.14.3/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
-
-
-# cert-manager < 0.14.3, Kubernetes >= 1.15
-$ kubectl create namespace cert-manager
-$ curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.12.0/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
-$ curl -sL https://raw.githubusercontent.com/knative/serving/release-0.12/third_party/cert-manager-0.12.0/cert-manager-crds.yaml -O && \
-    kubectl apply -f cert-manager-crds.yaml && \
-    curl -sL https://raw.githubusercontent.com/knative/serving/release-0.12/third_party/cert-manager-0.12.0/cert-manager.yaml -O && \
-    kubectl apply -f cert-manager.yaml
-
-# If `Permission Error`: Admin permissions are required to create the necessary RBAC rules 
-$ kubectl create clusterrolebinding cluster-admin-binding \
+kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
     --user=$(gcloud config get-value core/account)
 ```
+---
 
+### Install `Cert-Manager`
+
+```sh
+curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.14.3/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
+```
+
+
+### Install `Istio`
+
+* [Install `Istio` for `Knative`](../istio/install_istio_for_knative_v0.14.md)
 
 ### Install `Knative`
 
-| ![](../knative/knative-arch.png) |
-| ----- |
-Installing cluster-local-gateway for serving cluster-internal traffic
-If you installed Istio, you can install a cluster-local-gateway within your Knative cluster so that you can serve cluster-internal traffic. If you want to configure your revisions to use routes that are visible only within your cluster, install and use the cluster-local-gateway
+* [Install `Knative`](../knative/README.md)
 
-Knative >= v0.13.0
+* `Istio-extra` for `Knative`
 ```sh
-DIR=knative-v0.13.0
-mkdir -p $DIR;cd $DIR
+kubectl apply -f https://raw.githubusercontent.com/knative/serving/release-0.14/third_party/istio-1.4.7/istio-knative-extras.yaml
+```
 
-# 1. Install the `CRDs(Custom Resource Definitions)`
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-crds.yaml -O && \
-    kubectl apply -f serving-crds.yaml
-# 2. Install the core components of `Serving`
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-core.yaml -O && \
-    kubectl apply -f serving-core.yaml
-# 3-1. Install the Knative Istio controller:
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-istio.yaml -O && \
-    kubectl apply -f serving-istio.yaml
-# 4. Configure DNS: Magic DNS (`xip.io`)
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-default-domain.yaml -O && \
-    kubectl apply -f serving-default-domain.yaml
-# 5. Monitor all Knative components are running:
-kubectl get pods --namespace knative-serving
-# 6. Optional Serving extensions
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-hpa.yaml -O && \
-    kubectl apply -f serving-hpa.yaml
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-cert-manager.yaml -O && \
-    kubectl apply -f serving-cert-manager.yaml
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/serving-nscert.yaml -O && \
-    kubectl apply -f serving-nscert.yaml
-# 7. Eventing Components
-curl -sL https://github.com/knative/eventing/releases/download/v0.13.0/eventing-crds.yaml -O && \
-    kubectl apply -f eventing-crds.yaml
-curl -sL https://github.com/knative/eventing/releases/download/v0.13.0/eventing-core.yaml -O && \
-    kubectl apply -f eventing-core.yaml
-# GCP Pub/Sub Case
-curl -sL https://github.com/google/knative-gcp/releases/download/v0.13.0/cloud-run-events.yaml -O && \
-    kubectl apply -f cloud-run-events.yaml
-curl -sL https://github.com/knative/eventing/releases/download/v0.13.0/channel-broker.yaml -O && \
-    kubectl apply -f channel-broker.yaml
-# 8. Observability Plugins
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/monitoring-core.yaml -O && \
-    kubectl apply -f monitoring-core.yaml
-curl -sL https://github.com/knative/serving/releases/download/v0.13.0/monitoring-metrics-prometheus.yaml -O && \
-    kubectl apply -f monitoring-metrics-prometheus.yaml
+`Knative >= v0.14.0`
+```sh
+../knative/install-knative-v0.14-istio-no-tls.sh
+# kubectl create cm config-istio \
+#   --from-file ../istio/config-istio-knative-v0.14.0.yaml
+```
+:no_entry: `prometheus` response timeout.
+> ```sh
+> Error from server (Timeout): error when creating "monitoring-metrics-prometheus.yaml": Timeout: request did not complete within requested timeout 30s
+> ```
 
-cd ..
-
+```sh
 # 9. Monitor all Knative components are running:
-$ kubectl get pods --namespace knative-serving
-$ kubectl get pods --namespace knative-eventing
-$ kubectl get pods --namespace knative-monitoring
+$ kubectl get pods -n knative-serving && \
+    kubectl get pods -n knative-eventing && \
+    kubectl get pods -n knative-monitoring
 ```
 
 ---
@@ -151,20 +89,11 @@ kubectl patch \
 > **Ref 2**: <https://www.kangwoo.kr/2020/04/11/kubeflow-kfserving-%EC%84%A4%EC%B9%98>
 
 ```yaml
-# Fro kube 1.14
-env:
-- name: ENABLE_WEBHOOK_NAMESPACE_SELECTOR
-  value: enabled
+# # Fro kube 1.14
+# env:
+# - name: ENABLE_WEBHOOK_NAMESPACE_SELECTOR
+#   value: enabled
 ```
-
-```sh
-# For Kube 1.15
-$ kubectl patch \
-    mutatingwebhookconfiguration inferenceservice.serving.kubeflow.org \
-    --patch '{"webhooks":[{"name": "inferenceservice.kfserving-webhook-server.pod-mutator","objectSelector":{"matchExpressions":[{"key":"serving.kubeflow.org/inferenceservice", "operator": "Exists"}]}}]}'
-mutatingwebhookconfiguration.admissionregistration.k8s.io/inferenceservice.serving.kubeflow.org patched
-```
-
 
 ---
 
@@ -221,6 +150,7 @@ $ kubectl -n kfserving-system get cm inferenceservice-config \
 
 ```bash
 # kubectl apply -f examples/sklearn/sklearn.yaml
+$ kubectl create nm inference-test
 $ curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/sklearn.yaml -O && \
   kubectl apply -f sklearn.yaml
 

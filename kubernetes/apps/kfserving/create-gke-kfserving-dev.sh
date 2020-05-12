@@ -67,6 +67,7 @@ METADATA="disable-legacy-endpoints=true"
 LABELS="cz_owner=youngju_kim,application=kfserving"
 DESCRIPTION="A testbed Kubernetes cluster;for KFServing InferenceService."
 SOURCE_NETWORK_CIDRS=""
+SCOPES="default,pubsub,compute-rw,storage-full,trace,monitoring-write"
 
 gcloud beta container clusters create \
     $CLUSTER_NM \
@@ -101,10 +102,11 @@ gcloud beta container clusters create \
     --enable-shielded-nodes \
     --metadata=$METADATA \
     --labels=$LABELS \
-    --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,ApplicationManager \
-    --istio-config=$ISTIO_CONFIG \
-    --scopes="gke-default"
+    --addons HorizontalPodAutoscaling,HttpLoadBalancing \
+    --scopes=$SCOPES
 
+# --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,ApplicationManager \
+# --istio-config=$ISTIO_CONFIG \
 
 # gcloud beta container clusters create \
 #     $CLUSTER_NM \
