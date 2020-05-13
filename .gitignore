@@ -1,2 +1,3 @@
+kubernetes/apps/kfserving/examples/brain/src/*
 *credential.json
 *key.json
