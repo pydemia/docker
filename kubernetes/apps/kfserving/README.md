@@ -10,7 +10,7 @@
   * `Knative Serving: v0.11.1+`
 
 ---
-First,
+First, Unless your're the owner of the cluster,
 ```sh
 kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
@@ -99,6 +99,15 @@ kubectl patch \
 $ kubectl -n knative-serving get cm config-istio \
   -o jsonpath="{.data['gateway\.knative-ingress-gateway']}"
 istio-ingressgateway.istio-system.svc.cluster.local
+```
+
+If vanilla:
+
+```sh
+kubectl -n knative-serving patch configmap/config-istio \
+  --type merge \
+  --patch \
+'{"data": {"gateway.knative-serving.knative-ingress-gateway": "istio-ingressgateway.istio-system.svc.cluster.local","local-gateway.knative-serving.cluster-local-gateway": "cluster-local-gateway.istio-system.svc.cluster.local","local-gateway.mesh": "mesh"}}'
 ```
 
 :bell::speech_balloon:**Note**: The configuration format should be `gateway.{{gateway_namespace}}.{{gateway_name}}: "{{ingress_name}}.{{ingress_namespace}}.svc.cluster.local"`.
@@ -218,30 +227,55 @@ inferenceservice.serving.kubeflow.org/sklearn-iris created
 
 ## Get a prediction
 
+Samples are [here](https://github.com/kubeflow/kfserving/tree/master/docs/samples)
+
+* `scikit-learn: iris`
 ```bash
+INFERENCE_NS=inference-test
+kubectl create ns $INFERENCE_NS
+
+# YAML
+curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/sklearn.yaml -O
+# INPUT SAMPLE
 curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/iris-input.json -O
 
 MODEL_NAME=sklearn-iris
 INPUT_PATH=@./iris-input.json
+
+# APPLY
+kubectl -n $INFERENCE_NS apply -f sklearn.yaml
+
 CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-SERVICE_HOSTNAME=$(kubectl get inferenceservice sklearn-iris -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+SERVICE_HOSTNAME=$(kubectl -n $INFERENCE_NS get inferenceservice $MODEL_NAME -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+
 echo "$CLUSTER_IP, $SERVICE_HOSTNAME"
+
+# PREDICTION
 curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
-curl -v http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
 ```
 
+* `tensorflow-cpu: flowers-sample`
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/iris-input.json -O
+INFERENCE_NS=inference-test
+kubectl create ns $INFERENCE_NS
 
-MODEL_NAME=sklearn-iris
-INPUT_PATH=@./iris-input.json
+# YAML
+curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/tensorflow/tensorflow-canary.yaml -O
+# INPUT SAMPLE
+curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/tensorflow/input.json -o tf-imagebyte-input.json
+
+MODEL_NAME=flowers-sample
+INPUT_PATH=@./tf-imagebyte-input.json
+
+# APPLY
+kubectl -n $INFERENCE_NS apply -f tensorflow-canary.yaml
+
 CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+SERVICE_HOSTNAME=$(kubectl -n $INFERENCE_NS get inferenceservice $MODEL_NAME -o jsonpath='{.status.url}' | cut -d "/" -f 3)
 
-CLUSTER_IP=$(kubectl -n istio-system get ing kfserving-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+echo "$CLUSTER_IP, $SERVICE_HOSTNAME"
 
-
-SERVICE_HOSTNAME=$(kubectl get inferenceservice sklearn-iris -o jsonpath='{.status.url}' | cut -d "/" -f 3)
-
+# PREDICTION
 curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
 ```
 

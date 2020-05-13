@@ -218,7 +218,7 @@ curl -sL https://github.com/knative/eventing-contrib/releases/download/${KNATIVE
 # curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-tracing-zipkin-in-mem.yaml -O && \
 #     kubectl apply -f monitoring-tracing-zipkin-in-mem.yaml
 
-
+sleep 20
 cd ..
 
 ##################################
@@ -226,7 +226,7 @@ cd ..
 DIR="kfserving-${KFSERVING_VERSION}"
 mkdir -p ${DIR};cd ${DIR}
 
-wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/$TAG/kfserving.yaml \
+wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/${KFSERVING_VERSION}/kfserving.yaml \
     -O "kfserving-${KFSERVING_VERSION}.yaml"
 kubectl apply -f "kfserving-${KFSERVING_VERSION}.yaml"
 
@@ -235,8 +235,40 @@ kubectl patch \
     mutatingwebhookconfiguration inferenceservice.serving.kubeflow.org \
     --patch '{"webhooks":[{"name": "inferenceservice.kfserving-webhook-server.pod-mutator","objectSelector":{"matchExpressions":[{"key":"serving.kubeflow.org/inferenceservice", "operator": "Exists"}]}}]}'
 
+# Patch config-istio
+kubectl -n knative-serving patch configmap/config-istio \
+  --type merge \
+  --patch \
+'{"data": {"gateway.knative-serving.knative-ingress-gateway": "istio-ingressgateway.istio-system.svc.cluster.local","local-gateway.knative-serving.cluster-local-gateway": "cluster-local-gateway.istio-system.svc.cluster.local","local-gateway.mesh": "mesh"}}'
+
 kubectl -n knative-serving get cm config-istio \
   -o jsonpath="{.data['gateway\.knative-ingress-gateway']}"
 
 cd ..
+
 ##################################
+# Test: InferenceService
+echo "##################################
+# Test: InferenceService
+#   - namespace: 'inference-test'
+#   - inference: 'sklearn.yaml'
+##################################"
+kubectl create ns inference-test
+curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/sklearn.yaml -O && \
+  kubectl apply -f sklearn.yaml -n inference-test
+
+kubectl -n inference-test get inferenceservice sklearn-iris
+
+curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/iris-input.json -O
+
+MODEL_NAME=sklearn-iris
+INPUT_PATH=@./iris-input.json
+CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+SERVICE_HOSTNAME=$(kubectl -n inference-test get inferenceservice sklearn-iris -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+echo "$CLUSTER_IP, $SERVICE_HOSTNAME"
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
+
+kubectl delete -f sklearn.yaml
+kubectl delete ns inference-test
+
+echo "Test has been finished."
