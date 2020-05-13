@@ -9,3 +9,9 @@
 * Kubernetes
   * EN
   * 한글
+
+
+---
+# Alias
+
+* [KFServing: `kfserving-dev`](kubernetes/apps/kfserving/README.md)

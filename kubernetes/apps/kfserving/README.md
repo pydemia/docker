@@ -281,6 +281,12 @@ curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:
 
 ---
 
+### Custom Image & Input
+
+
+
+---
+
 ### Volume
 
 ```yaml
