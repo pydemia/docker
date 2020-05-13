@@ -28,15 +28,43 @@ EOF
 ```
 
 ### Install `Istio`
-* <font color='grey'>Installing Istio without sidecar injection</font>
+* **Installing Istio without sidecar injection**(Recommended default installation)
 * <font color='grey'>Installing Istio with sidecar injection</font>
-*  **Installing Istio with SDS to secure the ingress gateway**
+*  <font color='grey'>Installing Istio with SDS to secure the ingress gateway</font>
 
-:bulb::speech_balloon:If you want to enable the Istio service mesh, you must enable automatic sidecar injection. The Istio service mesh provides a few benefits:
+```sh
+# A lighter template, with just pilot/gateway.
+# Based on install/kubernetes/helm/istio/values-istio-minimal.yaml
+helm template --namespace=istio-system \
+  --set prometheus.enabled=false \
+  --set mixer.enabled=false \
+  --set mixer.policy.enabled=false \
+  --set mixer.telemetry.enabled=false \
+  `# Pilot doesn't need a sidecar.` \
+  --set pilot.sidecar=false \
+  --set pilot.resources.requests.memory=128Mi \
+  `# Disable galley (and things requiring galley).` \
+  --set galley.enabled=false \
+  --set global.useMCP=false \
+  `# Disable security / policy.` \
+  --set security.enabled=false \
+  --set global.disablePolicyChecks=true \
+  `# Disable sidecar injection.` \
+  --set sidecarInjectorWebhook.enabled=false \
+  --set global.proxy.autoInject=disabled \
+  --set global.omitSidecarInjectorConfigMap=true \
+  --set gateways.istio-ingressgateway.autoscaleMin=1 \
+  --set gateways.istio-ingressgateway.autoscaleMax=2 \
+  `# Set pilot trace sampling to 100%` \
+  --set pilot.traceSampling=100 \
+  --set global.mtls.auto=false \
+  install/kubernetes/helm/istio \
+  > ./istio-lean.yaml
 
-* Allows you to turn on mutual TLS, which secures service-to-service traffic within the cluster.
+kubectl apply -f istio-lean.yaml
+```
 
-* Allows you to use the Istio authorization policy, controlling the access to each Knative service based on Istio service roles.
+
 
 ```sh
 # A template with sidecar injection enabled.
@@ -66,7 +94,8 @@ helm template --namespace=istio-system \
 kubectl apply -f istio.yaml
 ```
 
-### (Optional) Updating your install to use cluster local gateway
+### Updating your install to use cluster local gateway
+
 ```sh
 # Add the extra gateway.
 helm template --namespace=istio-system \
@@ -87,6 +116,14 @@ helm template --namespace=istio-system \
 
 kubectl apply -f istio-local-gateway.yaml
 ```
+
+
+* ~~`Istio-extra` for `Knative`~~
+```sh
+# curl -sL https://raw.githubusercontent.com/knative/serving/release-0.14/third_party/istio-1.4.7/istio-knative-extras.yaml -O && \
+# kubectl apply -f istio-knative-extras.yaml
+```
+
 
 ```sh
 kubectl -n istio-system get svc istio-ingressgateway

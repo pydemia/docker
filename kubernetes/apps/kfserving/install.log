@@ -1,0 +1,562 @@
+clusterrolebinding.rbac.authorization.k8s.io/cluster-admin-binding created
+customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+namespace/cert-manager created
+serviceaccount/cert-manager-cainjector created
+serviceaccount/cert-manager created
+serviceaccount/cert-manager-webhook created
+clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrole.rbac.authorization.k8s.io/cert-manager-view created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+service/cert-manager created
+service/cert-manager-webhook created
+deployment.apps/cert-manager-cainjector created
+deployment.apps/cert-manager created
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+Downloading istio-1.4.1 from https://github.com/istio/istio/releases/download/1.4.1/istio-1.4.1-linux.tar.gz ...
+Istio 1.4.1 Download Complete!
+
+Istio has been successfully downloaded into the istio-1.4.1 folder on your system.
+
+Next Steps:
+See https://istio.io/docs/setup/kubernetes/install/ to add Istio to your Kubernetes cluster.
+
+To configure the istioctl client tool for your workstation,
+add the /home/pydemia/git/containers/kubernetes/apps/kfserving/kfserving_pkg/istio-1.4.1/bin directory to your environment path variable with:
+	 export PATH="$PATH:/home/pydemia/git/containers/kubernetes/apps/kfserving/kfserving_pkg/istio-1.4.1/bin"
+
+Begin the Istio pre-installation verification check by running:
+	 istioctl verify-install 
+
+Need more information? Visit https://istio.io/docs/setup/kubernetes/install/ 
+customresourcedefinition.apiextensions.k8s.io/attributemanifests.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/clusterrbacconfigs.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/destinationrules.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/envoyfilters.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/gateways.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/httpapispecbindings.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/httpapispecs.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/meshpolicies.authentication.istio.io created
+customresourcedefinition.apiextensions.k8s.io/policies.authentication.istio.io created
+customresourcedefinition.apiextensions.k8s.io/quotaspecbindings.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/quotaspecs.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/rbacconfigs.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/rules.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/serviceentries.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/servicerolebindings.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/serviceroles.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/virtualservices.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/adapters.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/instances.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/templates.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/handlers.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/sidecars.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/authorizationpolicies.security.istio.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/orders.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.certmanager.k8s.io created
+namespace/istio-system created
+poddisruptionbudget.policy/istio-ingressgateway created
+poddisruptionbudget.policy/istio-pilot created
+configmap/istio created
+serviceaccount/istio-ingressgateway-service-account created
+serviceaccount/istio-pilot-service-account created
+serviceaccount/istio-multi created
+clusterrole.rbac.authorization.k8s.io/istio-pilot-istio-system created
+clusterrole.rbac.authorization.k8s.io/istio-reader created
+clusterrolebinding.rbac.authorization.k8s.io/istio-pilot-istio-system created
+clusterrolebinding.rbac.authorization.k8s.io/istio-multi created
+role.rbac.authorization.k8s.io/istio-ingressgateway-sds created
+rolebinding.rbac.authorization.k8s.io/istio-ingressgateway-sds created
+service/istio-ingressgateway created
+service/istio-pilot created
+deployment.apps/istio-ingressgateway created
+deployment.apps/istio-pilot created
+horizontalpodautoscaler.autoscaling/istio-ingressgateway created
+horizontalpodautoscaler.autoscaling/istio-pilot created
+poddisruptionbudget.policy/cluster-local-gateway created
+serviceaccount/cluster-local-gateway-service-account created
+serviceaccount/istio-multi unchanged
+clusterrole.rbac.authorization.k8s.io/istio-reader unchanged
+clusterrolebinding.rbac.authorization.k8s.io/istio-multi unchanged
+service/cluster-local-gateway created
+deployment.apps/cluster-local-gateway created
+customresourcedefinition.apiextensions.k8s.io/certificates.networking.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/configurations.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/ingresses.networking.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/metrics.autoscaling.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/podautoscalers.autoscaling.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/revisions.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/routes.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/serverlessservices.networking.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/services.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/images.caching.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/images.caching.internal.knative.dev unchanged
+namespace/knative-serving created
+serviceaccount/controller created
+clusterrole.rbac.authorization.k8s.io/knative-serving-admin created
+clusterrolebinding.rbac.authorization.k8s.io/knative-serving-controller-admin created
+image.caching.internal.knative.dev/queue-proxy created
+configmap/config-autoscaler created
+configmap/config-defaults created
+configmap/config-deployment created
+configmap/config-domain created
+configmap/config-gc created
+configmap/config-leader-election created
+configmap/config-logging created
+configmap/config-network created
+configmap/config-observability created
+configmap/config-tracing created
+horizontalpodautoscaler.autoscaling/activator created
+deployment.apps/activator created
+service/activator-service created
+deployment.apps/autoscaler created
+service/autoscaler created
+deployment.apps/controller created
+service/controller created
+deployment.apps/webhook created
+service/webhook created
+customresourcedefinition.apiextensions.k8s.io/certificates.networking.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/configurations.serving.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/ingresses.networking.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/metrics.autoscaling.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/podautoscalers.autoscaling.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/revisions.serving.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/routes.serving.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/serverlessservices.networking.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/services.serving.knative.dev unchanged
+clusterrole.rbac.authorization.k8s.io/knative-serving-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespaced-admin created
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespaced-edit created
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespaced-view created
+clusterrole.rbac.authorization.k8s.io/knative-serving-core created
+clusterrole.rbac.authorization.k8s.io/knative-serving-podspecable-binding created
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.serving.knative.dev created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.serving.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/validation.webhook.serving.knative.dev created
+secret/webhook-certs created
+clusterrole.rbac.authorization.k8s.io/knative-serving-istio created
+gateway.networking.istio.io/knative-ingress-gateway created
+gateway.networking.istio.io/cluster-local-gateway created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.istio.networking.internal.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.istio.networking.internal.knative.dev created
+secret/istio-webhook-certs created
+deployment.apps/networking-istio created
+deployment.apps/istio-webhook created
+service/istio-webhook created
+clusterrole.rbac.authorization.k8s.io/knative-serving-istio unchanged
+gateway.networking.istio.io/knative-ingress-gateway unchanged
+gateway.networking.istio.io/cluster-local-gateway unchanged
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.istio.networking.internal.knative.dev unchanged
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.istio.networking.internal.knative.dev unchanged
+secret/istio-webhook-certs unchanged
+deployment.apps/networking-istio unchanged
+deployment.apps/istio-webhook unchanged
+service/istio-webhook unchanged
+NAME                   TYPE           CLUSTER-IP    EXTERNAL-IP      PORT(S)                                                                                                                                      AGE
+istio-ingressgateway   LoadBalancer   10.187.9.19   35.226.218.121   15020:30196/TCP,80:31380/TCP,443:31390/TCP,31400:31400/TCP,15029:32161/TCP,15030:30715/TCP,15031:31803/TCP,15032:32662/TCP,15443:30313/TCP   3m47s
+job.batch/default-domain created
+service/default-domain-service created
+NAME                                READY   STATUS              RESTARTS   AGE
+activator-8cb6d456-hzt6x            1/1     Running             0          115s
+autoscaler-dd459ddbb-rcwlh          1/1     Running             0          114s
+controller-8564567c4c-h9ppr         1/1     Running             0          113s
+default-domain-pptwp                0/1     ContainerCreating   0          1s
+istio-webhook-5fcb47c757-nz8vb      1/1     Running             0          40s
+networking-istio-5698886855-zkw4s   0/1     CrashLoopBackOff    2          40s
+webhook-7fbf9c6d49-zs4dr            1/1     Running             0          112s
+clusterrolebinding.rbac.authorization.k8s.io/cluster-admin-binding created
+customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+namespace/cert-manager created
+serviceaccount/cert-manager-cainjector created
+serviceaccount/cert-manager created
+serviceaccount/cert-manager-webhook created
+clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrole.rbac.authorization.k8s.io/cert-manager-view created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager:leaderelection created
+role.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:dynamic-serving created
+service/cert-manager created
+service/cert-manager-webhook created
+deployment.apps/cert-manager-cainjector created
+deployment.apps/cert-manager created
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+Downloading istio-1.4.1 from https://github.com/istio/istio/releases/download/1.4.1/istio-1.4.1-linux.tar.gz ...
+Istio 1.4.1 Download Complete!
+
+Istio has been successfully downloaded into the istio-1.4.1 folder on your system.
+
+Next Steps:
+See https://istio.io/docs/setup/kubernetes/install/ to add Istio to your Kubernetes cluster.
+
+To configure the istioctl client tool for your workstation,
+add the /home/pydemia/git/containers/kubernetes/apps/kfserving/kfserving_pkg/istio-1.4.1/bin directory to your environment path variable with:
+	 export PATH="$PATH:/home/pydemia/git/containers/kubernetes/apps/kfserving/kfserving_pkg/istio-1.4.1/bin"
+
+Begin the Istio pre-installation verification check by running:
+	 istioctl verify-install 
+
+Need more information? Visit https://istio.io/docs/setup/kubernetes/install/ 
+customresourcedefinition.apiextensions.k8s.io/attributemanifests.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/clusterrbacconfigs.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/destinationrules.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/envoyfilters.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/gateways.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/httpapispecbindings.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/httpapispecs.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/meshpolicies.authentication.istio.io created
+customresourcedefinition.apiextensions.k8s.io/policies.authentication.istio.io created
+customresourcedefinition.apiextensions.k8s.io/quotaspecbindings.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/quotaspecs.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/rbacconfigs.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/rules.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/serviceentries.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/servicerolebindings.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/serviceroles.rbac.istio.io created
+customresourcedefinition.apiextensions.k8s.io/virtualservices.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/adapters.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/instances.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/templates.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/handlers.config.istio.io created
+customresourcedefinition.apiextensions.k8s.io/sidecars.networking.istio.io created
+customresourcedefinition.apiextensions.k8s.io/authorizationpolicies.security.istio.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/orders.certmanager.k8s.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.certmanager.k8s.io created
+namespace/istio-system created
+poddisruptionbudget.policy/istio-ingressgateway created
+poddisruptionbudget.policy/istio-pilot created
+configmap/istio created
+serviceaccount/istio-ingressgateway-service-account created
+serviceaccount/istio-pilot-service-account created
+serviceaccount/istio-multi created
+clusterrole.rbac.authorization.k8s.io/istio-pilot-istio-system created
+clusterrole.rbac.authorization.k8s.io/istio-reader created
+clusterrolebinding.rbac.authorization.k8s.io/istio-pilot-istio-system created
+clusterrolebinding.rbac.authorization.k8s.io/istio-multi created
+role.rbac.authorization.k8s.io/istio-ingressgateway-sds created
+rolebinding.rbac.authorization.k8s.io/istio-ingressgateway-sds created
+service/istio-ingressgateway created
+service/istio-pilot created
+deployment.apps/istio-ingressgateway created
+deployment.apps/istio-pilot created
+horizontalpodautoscaler.autoscaling/istio-ingressgateway created
+horizontalpodautoscaler.autoscaling/istio-pilot created
+poddisruptionbudget.policy/cluster-local-gateway created
+serviceaccount/cluster-local-gateway-service-account created
+serviceaccount/istio-multi unchanged
+clusterrole.rbac.authorization.k8s.io/istio-reader unchanged
+clusterrolebinding.rbac.authorization.k8s.io/istio-multi unchanged
+service/cluster-local-gateway created
+deployment.apps/cluster-local-gateway created
+customresourcedefinition.apiextensions.k8s.io/certificates.networking.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/configurations.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/ingresses.networking.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/metrics.autoscaling.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/podautoscalers.autoscaling.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/revisions.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/routes.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/serverlessservices.networking.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/services.serving.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/images.caching.internal.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/images.caching.internal.knative.dev unchanged
+namespace/knative-serving created
+serviceaccount/controller created
+clusterrole.rbac.authorization.k8s.io/knative-serving-admin created
+clusterrolebinding.rbac.authorization.k8s.io/knative-serving-controller-admin created
+image.caching.internal.knative.dev/queue-proxy created
+configmap/config-autoscaler created
+configmap/config-defaults created
+configmap/config-deployment created
+configmap/config-domain created
+configmap/config-gc created
+configmap/config-leader-election created
+configmap/config-logging created
+configmap/config-network created
+configmap/config-observability created
+configmap/config-tracing created
+horizontalpodautoscaler.autoscaling/activator created
+deployment.apps/activator created
+service/activator-service created
+deployment.apps/autoscaler created
+service/autoscaler created
+deployment.apps/controller created
+service/controller created
+deployment.apps/webhook created
+service/webhook created
+customresourcedefinition.apiextensions.k8s.io/certificates.networking.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/configurations.serving.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/ingresses.networking.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/metrics.autoscaling.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/podautoscalers.autoscaling.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/revisions.serving.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/routes.serving.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/serverlessservices.networking.internal.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/services.serving.knative.dev unchanged
+clusterrole.rbac.authorization.k8s.io/knative-serving-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespaced-admin created
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespaced-edit created
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespaced-view created
+clusterrole.rbac.authorization.k8s.io/knative-serving-core created
+clusterrole.rbac.authorization.k8s.io/knative-serving-podspecable-binding created
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.serving.knative.dev created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.serving.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/validation.webhook.serving.knative.dev created
+secret/webhook-certs created
+clusterrole.rbac.authorization.k8s.io/knative-serving-istio created
+gateway.networking.istio.io/knative-ingress-gateway created
+gateway.networking.istio.io/cluster-local-gateway created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.istio.networking.internal.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.istio.networking.internal.knative.dev created
+secret/istio-webhook-certs created
+configmap/config-istio created
+deployment.apps/networking-istio created
+deployment.apps/istio-webhook created
+service/istio-webhook created
+clusterrole.rbac.authorization.k8s.io/knative-serving-istio unchanged
+gateway.networking.istio.io/knative-ingress-gateway unchanged
+gateway.networking.istio.io/cluster-local-gateway unchanged
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.istio.networking.internal.knative.dev unchanged
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.istio.networking.internal.knative.dev unchanged
+secret/istio-webhook-certs unchanged
+configmap/config-istio unchanged
+deployment.apps/networking-istio unchanged
+deployment.apps/istio-webhook unchanged
+service/istio-webhook unchanged
+NAME                   TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                                                                                                                                      AGE
+istio-ingressgateway   LoadBalancer   10.187.10.124   35.223.25.173   15020:32415/TCP,80:31380/TCP,443:31390/TCP,31400:31400/TCP,15029:31246/TCP,15030:30808/TCP,15031:31826/TCP,15032:31917/TCP,15443:31277/TCP   2m47s
+job.batch/default-domain created
+service/default-domain-service created
+NAME                                READY   STATUS              RESTARTS   AGE
+activator-8cb6d456-g5krc            1/1     Running             0          55s
+autoscaler-dd459ddbb-f7kc8          1/1     Running             0          54s
+controller-8564567c4c-44s2x         1/1     Running             0          53s
+default-domain-xcz4p                0/1     ContainerCreating   0          1s
+istio-webhook-5fcb47c757-2zt87      1/1     Running             0          10s
+networking-istio-5698886855-tdqp9   1/1     Running             0          10s
+webhook-7fbf9c6d49-lsjj9            1/1     Running             0          52s
+clusterrole.rbac.authorization.k8s.io/custom-metrics-server-resources created
+clusterrolebinding.rbac.authorization.k8s.io/custom-metrics:system:auth-delegator created
+clusterrolebinding.rbac.authorization.k8s.io/hpa-controller-custom-metrics created
+rolebinding.rbac.authorization.k8s.io/custom-metrics-auth-reader created
+deployment.apps/autoscaler-hpa created
+service/autoscaler-hpa created
+apiservice.apiregistration.k8s.io/v1beta1.custom.metrics.k8s.io created
+clusterrole.rbac.authorization.k8s.io/knative-serving-certmanager created
+configmap/config-certmanager created
+deployment.apps/networking-certmanager created
+service/networking-certmanager created
+clusterissuer.cert-manager.io/letsencrypt-http01-issuer created
+<html><body>You are being <a href="https://github-production-release-asset-2e65be.s3.amazonaws.com/249035854/9b2cea80-7e35-11ea-8341-bb05d520e9cf?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20200512%2Fus-east-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20200512T203227Z&amp;X-Amz-Expires=300&amp;X-Amz-Signature=2ff228ccc461e9a7d6d09e3f27d30b05bde368196a53f8ab9aaf536b693f5668&amp;X-Amz-SignedHeaders=host&amp;actor_id=0&amp;repo_id=249035854&amp;response-content-disposition=attachment%3B%20filename%3Drelease.yaml&amp;response-content-type=application%2Foctet-stream">redirected</a>.</body></html><!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>400 Bad Request</title>
+</head><body>
+<h1>Bad Request</h1>
+<p>Your browser sent a request that this server could not understand.<br />
+</p>
+<p>Additionally, a 400 Bad Request
+error was encountered while trying to use an ErrorDocument to handle the request.</p>
+<hr>
+<address>Apache/2.4.18 (Ubuntu) Server at 127.0.1.1 Port 80</address>
+</body></html>
+clusterrole.rbac.authorization.k8s.io/knative-serving-namespace-wildcard-certs created
+deployment.apps/networking-ns-cert created
+service/networking-ns-cert created
+customresourcedefinition.apiextensions.k8s.io/apiserversources.sources.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/brokers.eventing.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/channels.messaging.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/containersources.sources.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/eventtypes.eventing.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/parallels.flows.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/pingsources.sources.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/sequences.flows.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/sinkbindings.sources.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/subscriptions.messaging.knative.dev created
+customresourcedefinition.apiextensions.k8s.io/triggers.eventing.knative.dev created
+namespace/knative-eventing created
+serviceaccount/eventing-controller created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-controller created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-controller-resolver created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-controller-source-observer created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-controller-sources-controller created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-controller-manipulator created
+serviceaccount/pingsource-jobrunner created
+clusterrolebinding.rbac.authorization.k8s.io/pingsource-jobrunner created
+serviceaccount/eventing-webhook created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-webhook created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-webhook-resolver created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-webhook-podspecable-binding created
+configmap/config-br-default-channel created
+configmap/config-br-defaults created
+configmap/default-ch-webhook created
+configmap/config-leader-election created
+configmap/config-logging created
+configmap/config-observability created
+configmap/config-tracing created
+deployment.apps/eventing-controller created
+deployment.apps/eventing-webhook created
+service/eventing-webhook created
+customresourcedefinition.apiextensions.k8s.io/apiserversources.sources.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/brokers.eventing.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/channels.messaging.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/containersources.sources.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/eventtypes.eventing.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/parallels.flows.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/pingsources.sources.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/sequences.flows.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/sinkbindings.sources.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/subscriptions.messaging.knative.dev unchanged
+customresourcedefinition.apiextensions.k8s.io/triggers.eventing.knative.dev unchanged
+clusterrole.rbac.authorization.k8s.io/addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/service-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/serving-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/channel-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/broker-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/messaging-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/flows-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/eventing-broker-filter created
+clusterrole.rbac.authorization.k8s.io/eventing-broker-ingress created
+clusterrole.rbac.authorization.k8s.io/eventing-config-reader created
+clusterrole.rbac.authorization.k8s.io/channelable-manipulator created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-namespaced-admin created
+clusterrole.rbac.authorization.k8s.io/knative-messaging-namespaced-admin created
+clusterrole.rbac.authorization.k8s.io/knative-flows-namespaced-admin created
+clusterrole.rbac.authorization.k8s.io/knative-sources-namespaced-admin created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-namespaced-edit created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-namespaced-view created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-controller created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-jobrunner created
+clusterrole.rbac.authorization.k8s.io/podspecable-binding created
+clusterrole.rbac.authorization.k8s.io/builtin-podspecable-binding created
+clusterrole.rbac.authorization.k8s.io/source-observer created
+clusterrole.rbac.authorization.k8s.io/eventing-sources-source-observer created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-sources-controller created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.eventing.knative.dev created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/webhook.eventing.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/validation.webhook.eventing.knative.dev created
+secret/eventing-webhook-certs created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/sinkbindings.webhook.sources.knative.dev created
+[1;33mUsing Strimzi Version:                  0.17.0[0m
+[1;33mStrimzi install[0m
+namespace/kafka created
+customresourcedefinition.apiextensions.k8s.io/kafkas.kafka.strimzi.io created
+rolebinding.rbac.authorization.k8s.io/strimzi-cluster-operator-entity-operator-delegation created
+clusterrolebinding.rbac.authorization.k8s.io/strimzi-cluster-operator created
+rolebinding.rbac.authorization.k8s.io/strimzi-cluster-operator-topic-operator-delegation created
+customresourcedefinition.apiextensions.k8s.io/kafkausers.kafka.strimzi.io created
+customresourcedefinition.apiextensions.k8s.io/kafkamirrormaker2s.kafka.strimzi.io created
+clusterrole.rbac.authorization.k8s.io/strimzi-entity-operator created
+clusterrole.rbac.authorization.k8s.io/strimzi-cluster-operator-global created
+clusterrolebinding.rbac.authorization.k8s.io/strimzi-cluster-operator-kafka-broker-delegation created
+rolebinding.rbac.authorization.k8s.io/strimzi-cluster-operator created
+clusterrole.rbac.authorization.k8s.io/strimzi-cluster-operator-namespaced created
+clusterrole.rbac.authorization.k8s.io/strimzi-topic-operator created
+serviceaccount/strimzi-cluster-operator created
+clusterrole.rbac.authorization.k8s.io/strimzi-kafka-broker created
+customresourcedefinition.apiextensions.k8s.io/kafkatopics.kafka.strimzi.io created
+customresourcedefinition.apiextensions.k8s.io/kafkabridges.kafka.strimzi.io created
+deployment.apps/strimzi-cluster-operator created
+customresourcedefinition.apiextensions.k8s.io/kafkaconnectors.kafka.strimzi.io created
+customresourcedefinition.apiextensions.k8s.io/kafkaconnects2is.kafka.strimzi.io created
+customresourcedefinition.apiextensions.k8s.io/kafkaconnects.kafka.strimzi.io created
+customresourcedefinition.apiextensions.k8s.io/kafkamirrormakers.kafka.strimzi.io created
+[1;33mApplying Strimzi Cluster file[0m
+kafka.kafka.strimzi.io/my-cluster created
+clusterrole.rbac.authorization.k8s.io/kafka-addressable-resolver created
+clusterrole.rbac.authorization.k8s.io/kafka-channelable-manipulator created
+clusterrole.rbac.authorization.k8s.io/kafka-ch-controller created
+serviceaccount/kafka-ch-controller created
+clusterrole.rbac.authorization.k8s.io/kafka-ch-dispatcher created
+serviceaccount/kafka-ch-dispatcher created
+clusterrole.rbac.authorization.k8s.io/kafka-webhook created
+serviceaccount/kafka-webhook created
+clusterrolebinding.rbac.authorization.k8s.io/kafka-ch-controller created
+clusterrolebinding.rbac.authorization.k8s.io/kafka-ch-dispatcher created
+clusterrolebinding.rbac.authorization.k8s.io/kafka-webhook created
+customresourcedefinition.apiextensions.k8s.io/kafkachannels.messaging.knative.dev created
+configmap/config-kafka created
+configmap/config-leader-election-kafka created
+service/kafka-webhook created
+deployment.apps/kafka-ch-controller created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/defaulting.webhook.kafka.messaging.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/validation.webhook.kafka.messaging.knative.dev created
+secret/messaging-webhook-certs created
+deployment.apps/kafka-webhook created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-channel-broker-controller created
+clusterrole.rbac.authorization.k8s.io/knative-eventing-channel-broker-controller created
+customresourcedefinition.apiextensions.k8s.io/configmappropagations.configs.internal.knative.dev created
+deployment.apps/broker-controller created
+deployment.apps/broker-controller configured
+customresourcedefinition.apiextensions.k8s.io/configmappropagations.configs.internal.knative.dev unchanged
+clusterrole.rbac.authorization.k8s.io/knative-eventing-channel-broker-controller unchanged
+namespace/knative-sources created
+serviceaccount/kafka-controller-manager created
+clusterrole.rbac.authorization.k8s.io/eventing-sources-kafka-controller created
+clusterrole.rbac.authorization.k8s.io/eventing-contrib-kafka-source-observer created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-sources-kafka-controller created
+clusterrolebinding.rbac.authorization.k8s.io/eventing-sources-kafka-controller-addressable-resolver created
+customresourcedefinition.apiextensions.k8s.io/kafkasources.sources.knative.dev created
+service/kafka-controller created
+deployment.apps/kafka-controller-manager created
+service/kafka-source-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/defaulting.webhook.kafka.sources.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/validation.webhook.kafka.sources.knative.dev created
+validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.kafka.sources.knative.dev created
+secret/kafka-source-webhook-certs created
+configmap/config-leader-election-kafka created
+configmap/config-logging created
+configmap/config-observability created

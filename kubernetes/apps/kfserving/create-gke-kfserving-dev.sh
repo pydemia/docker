@@ -50,14 +50,15 @@ MACHINE_TYPE="n1-standard-4" # 4CPUs, 16GB (gcloud compute machine-types list) <
 # --reservation-affinity=RESERVATION_AFFINITY
 # The type of the reservation for the default initial node pool. RESERVATION_AFFINITY must be one of: any, none, specific.
 #NODE_POOL="ubuntu-cpu"
-NUM_NODES="1"  # The number of nodes to be created in each of the cluster's zones. default: 3
+NUM_NODES="2"  # The number of nodes to be created in each of the cluster's zones. default: 3
 MIN_NODES="0"  # Minimum number of nodes in the node pool. Ignored unless `--enable-autoscaling` is also specified.
 MAX_NODES="3" # Maximum number of nodes in the node pool. Ignored unless `--enable-autoscaling` is also specified.
 MAX_NODES_PER_POOL="100"  # Defaults to 1000 nodes, but can be set as low as 100 nodes per pool on initial create.
 MAX_PODS_PER_NODE="110"  # default=110, Must be used in conjunction with '--enable-ip-alias'.
 NETWORK="yjkim-vpc"  # "default" or VPC
 SUBNETWORK="yjkim-kube-subnet"
-TAGS="yjkim-kube-instance,yjkim-kube-istio"  # (https://cloud.google.com/compute/docs/labeling-resources), tag1,tag2
+#yjkim-kube-natpublic
+TAGS="yjkim-kube-instance,yjkim-kube-istio,yjkim-kube-knative,yjkim-kube-kafka,yjkim-kube-subnetall"  # (https://cloud.google.com/compute/docs/labeling-resources), tag1,tag2
 SERVICE_ACCOUNT="yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com"
 
 WORKLOAD_POOL="${PROJECT_ID}.svc.id.goog" # Enable Workload Identity on the cluster. When enabled, Kubernetes service accounts will be able to act as Cloud IAM Service Accounts, through the provided workload pool. Currently, the only accepted workload pool is the workload pool of the Cloud project containing the cluster, `PROJECT_ID.svc.id.goog.`
@@ -69,6 +70,7 @@ DESCRIPTION="A testbed Kubernetes cluster;for KFServing InferenceService."
 SOURCE_NETWORK_CIDRS=""
 SCOPES="default,pubsub,compute-rw,storage-full,trace,monitoring-write"
 
+# https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters#all_access
 gcloud beta container clusters create \
     $CLUSTER_NM \
     --region=$REGION \
@@ -80,6 +82,7 @@ gcloud beta container clusters create \
     --enable-ip-alias \
     --enable-private-nodes \
     --no-enable-master-authorized-networks \
+    --no-issue-client-certificate \
     --master-ipv4-cidr=$MASTER_IPV4_CIDR \
     --disk-type=$DISK_TYPE \
     --disk-size=$DISK_SIZE \
@@ -104,6 +107,15 @@ gcloud beta container clusters create \
     --labels=$LABELS \
     --addons HorizontalPodAutoscaling,HttpLoadBalancing \
     --scopes=$SCOPES
+
+# --no-enable-master-authorized-networks disables authorized networks for the cluster.
+# --enable-ip-alias makes the cluster VPC-native.
+# --enable-private-nodes indicates that the cluster's nodes do not have external IP addresses.
+# --master-ipv4-cidr 172.16.0.32/28 specifies an RFC 1918 range for the master. This setting is permanent for this cluster. The use of non RFC 1918 reserved IPs is also supported (beta).
+# --no-enable-basic-auth indicates to disable basic auth for the cluster.
+# --no-issue-client-certificate disables issuing a client certificate.
+
+
 
 # --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,ApplicationManager \
 # --istio-config=$ISTIO_CONFIG \

@@ -12,7 +12,7 @@
 
 ```bash
 # cert-manager >= 0.14.3, Kubernetes >= 1.15
-curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.14.3/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
+curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.15.0/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
 
 # cert-manager < 0.14.3, Kubernetes >= 1.15    
 $ kubectl create namespace cert-manager

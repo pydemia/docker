@@ -57,7 +57,7 @@ MAX_NODES_PER_POOL="100"  # Defaults to 1000 nodes, but can be set as low as 100
 MAX_PODS_PER_NODE="110"  # default=110, Must be used in conjunction with '--enable-ip-alias'.
 NETWORK="yjkim-vpc"  # "default" or VPC
 SUBNETWORK="yjkim-kube-subnet"
-TAGS="yjkim-kube-instance,yjkim-kube-istio,yjkim-kube-anthos" # (https://cloud.google.com/compute/docs/labeling-resources), tag1,tag2
+TAGS="yjkim-kube-instance,yjkim-kube-istio,yjkim-kube-knative" # (https://cloud.google.com/compute/docs/labeling-resources), tag1,tag2
 SERVICE_ACCOUNT="yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com"
 
 WORKLOAD_POOL="${PROJECT_ID}.svc.id.goog" # Enable Workload Identity on the cluster. When enabled, Kubernetes service accounts will be able to act as Cloud IAM Service Accounts, through the provided workload pool. Currently, the only accepted workload pool is the workload pool of the Cloud project containing the cluster, `PROJECT_ID.svc.id.goog.`

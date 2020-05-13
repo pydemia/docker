@@ -21,7 +21,7 @@ kubectl create clusterrolebinding cluster-admin-binding \
 ### Install `Cert-Manager`
 
 ```sh
-curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.14.3/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
+curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.15.0/cert-manager.yaml -O && kubectl apply --validate=false -f cert-manager.yaml
 ```
 
 
@@ -33,14 +33,10 @@ curl -sL https://github.com/jetstack/cert-manager/releases/download/v0.14.3/cert
 
 * [Install `Knative`](../knative/README.md)
 
-* `Istio-extra` for `Knative`
-```sh
-kubectl apply -f https://raw.githubusercontent.com/knative/serving/release-0.14/third_party/istio-1.4.7/istio-knative-extras.yaml
-```
-
 `Knative >= v0.14.0`
 ```sh
-../knative/install-knative-v0.14-istio-no-tls.sh
+cd ../knative
+./install-knative-v0.14-istio-no-tls.sh
 # kubectl create cm config-istio \
 #   --from-file ../istio/config-istio-knative-v0.14.0.yaml
 ```
