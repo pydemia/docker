@@ -1,0 +1,22 @@
+apiVersion: "serving.kubeflow.org/v1alpha2"
+kind: "InferenceService"
+metadata:
+  name: "microorganism"
+spec:
+  default:
+    predictor:
+      custom:
+        container:
+          image: "gcr.io/ds-ai-platform/microorganism"
+           env:
+            - name: MODEL_NAME
+              value: "nlu-confidence-exam"
+            - name: MODEL_BASE_PATH
+              value: "/mnt/models"
+            - name: STORAGE_URI
+              value: pvc://{PVC_NAME}/export
+          ports:
+            - containerPort: 8500
+            env:
+            - name: GREETING_TARGET
+              storageUri: "gs://brain-ds/microorganism_13/model"

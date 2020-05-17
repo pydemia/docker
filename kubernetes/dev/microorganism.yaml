@@ -5,5 +5,5 @@ metadata:
 spec:
   default:
     predictor:
-      tensorflow:
+      microorganism:
         storageUri: "gs://brain-ds/microorganism_13/model"

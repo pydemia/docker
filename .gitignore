@@ -2,3 +2,6 @@
 kubernetes/apps/kfserving/examples/brain/src/*
 *credential.json
 *key.json
+
+__pycache__/
+#*.pyc

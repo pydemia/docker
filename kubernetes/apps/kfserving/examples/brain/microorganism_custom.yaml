@@ -1,0 +1,17 @@
+apiVersion: "serving.kubeflow.org/v1alpha2"
+kind: "InferenceService"
+metadata:
+  name: microorganism
+spec:
+  default:
+    predictor:
+      custom:
+        container:
+          image: gcr.io/ds-ai-platform/microorganism
+            env:
+            - name: MODEL_BASE_PATH
+              value: "/mnt/models"
+            - name: STORAGE_URI
+              value: gs://brain-ds/microorganism_13/model
+          ports:
+            - containerPort: 8500

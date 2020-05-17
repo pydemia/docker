@@ -362,5 +362,47 @@ cd /tmp/skipc_microorganism_detection_model
 
 ```
 
+---
 
+```sh
+python -m image_loader -i ./ar\ \(118\).jpg -o ./ar118.json
+```
 
+```sh
+curl http://localhost:8501/v1/models/microorganism:predict -d '@./ar118.json'
+
+MODEL_NAME=sklearn-iris
+INPUT_PATH=@./iris-input.json
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH  
+```
+
+```ascii
+Error from server: error when creating "microorganism.yaml": admission webhook "inferenceservice.kfserving-webhook-server.validator" denied the request: Exactly one of [Custom, ONNX, Tensorflow, TensorRT, SKLearn, XGBoost] must be specified in PredictorSpec
+```
+
+"tensorflow": {
+            "image": "tensorflow/serving",
+            "defaultImageVersion": "1.14.0",
+            "defaultGpuImageVersion": "1.14.0-gpu",
+            "allowedImageVersions": [
+               "1.11.0",
+               "1.11.0-gpu",
+               "1.12.0",
+               "1.12.0-gpu",
+               "1.13.0",
+               "1.13.0-gpu",
+               "1.14.0",
+               "1.14.0-gpu"
+            ]
+        },
+"microorganism": {
+            "image": "gcr.io/ds-ai-platform/microorganism",
+            "defaultImageVersion": "v0.1.0-http",
+            "defaultGpuImageVersion": "v0.1.0-http-gpu",
+            "allowedImageVersions": [
+               "v0.1.0-http",
+               "v0.1.0-http-gpu",
+               "v0.1.0-http-grpc",
+               "v0.1.0-http-grpc-gpu"
+            ]
+        },

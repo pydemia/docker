@@ -105,6 +105,64 @@ go: downloading github.com/google/go-cmp v0.3.0
 
 ```sh
 #$ export KO_DOCKER_REPO=gcr.io/ds-ai-platform/microorganism
-$ export KO_DOCKER_REPO=gcr.io/ds-ai-platform
-#$ export KO_DOCKER_REPO=docker.io/pydemia
+$ export KO_DOCKER_REPO=gcr.io/ds-ai-platform/microorganism
+#$ export KO_DOCKER_REPO=docker.io/pydemia/microorganism
+```
+
+### Clone the repository
+
+Clone `kfserving` repository to `${GOPATH}/src/github.com/kubeflow`
+
+* fork `https://github.com/kubeflow/kfserving` first.
+* clone and add `upstream` to original repo.
+
+```sh
+git clone -b v0.3.0 https://github.com/pydemia/kfserving ${GOPATH}/src/github.com/kubeflow
+cd ${GOPATH}/src/github.com/kubeflow
+git remote add upstream git@github.com:kubeflow/kfserving.git
+git remote set-url --push upstream no_push
+```
+
+#### Create a custom image to deploy
+
+* In case you don't use `cert-manager`:
+```sh
+export KFSERVING_ENABLE_SELF_SIGNED_CA=true
+```
+
+* use env
+```sh
+export KO_DOCKER_REPO=gcr.io/ds-ai-platform/microorganism
+```
+
+`ConfigMap: inferenceservice-config`
+```yaml
+"microorganism": {
+  "image": "gcr.io/ds-ai-platform/microorganism",
+  "defaultImageVersion": "v0.1.0-http",
+  "allowedImageVersions": [
+      "v0.1.0-http",
+      "v0.1.0-http-gpu",
+      "v0.1.0-http-grpc",
+      "v0.1.0-http-grpc-gpu"
+  ]
+},
+```
+
+`deploy: microorganism.yaml`
+```yaml
+apiVersion: "serving.kubeflow.org/v1alpha2"
+kind: "InferenceService"
+metadata:
+  name: "microorganism"
+spec:
+  default:
+    predictor:
+      microorganism:
+        storageUri: "gs://brain-ds/microorganism_13/model"
+```
+
+
+```sh
+$ kubectl -n inference-test apply -f microorganism.yaml
 ```
