@@ -7,11 +7,20 @@
 * Docker
 
 * Kubernetes
-  * EN
-  * 한글
 
 
 ---
 # Alias
 
 * [KFServing: `kfserving-dev`](kubernetes/apps/kfserving/README.md)
+
+---
+# Dev
+
+* `golang`
+* `ko`
+* `kubectl`
+* `kustomize`
+
+[KFServing-README](https://github.com/kubeflow/kfserving/tree/master/docs)
+[KFServing-dev](https://github.com/kubeflow/kfserving/blob/master/docs/DEVELOPER_GUIDE.md)
