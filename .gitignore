@@ -1,4 +1,5 @@
 *.linux-amd64.tar.gz
+kubernetes/apps/kfserving/examples/brain/restful/*.pb
 kubernetes/apps/kfserving/examples/brain/src/*
 *credential.json
 *key.json

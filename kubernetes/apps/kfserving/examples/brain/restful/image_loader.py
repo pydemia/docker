@@ -7,8 +7,12 @@ import argparse
 import base64
 import cv2
 
-def _load_image_as_str(filename, output):
-    img = cv2.imread(filename)
+def _load_image_as_str(filename, output, type='rgb'):
+    if type == 'rgb':
+        img_bgr = cv2.imread(filename, cv2.IMREAD_COLOR)
+        img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    else:
+        img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
     string = base64.b64encode(cv2.imencode('.jpg', img)[1]).decode()
     # string = base64.b64encode(img).decode('utf8')
 

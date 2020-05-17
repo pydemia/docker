@@ -9,9 +9,11 @@ spec:
         container:
           image: gcr.io/ds-ai-platform/microorganism
             env:
+            - name: MODEL_NAME
+              value: "microorganism"
             - name: MODEL_BASE_PATH
-              value: "/mnt/models"
+              value: "/models"
             - name: STORAGE_URI
               value: gs://brain-ds/microorganism_13/model
           ports:
-            - containerPort: 8500
+            - containerPort: 8501

@@ -366,6 +366,8 @@ cd /tmp/skipc_microorganism_detection_model
 
 ```sh
 python -m image_loader -i ./ar\ \(118\).jpg -o ./ar118.json
+
+docker cp ../src/microorganism_13/model/frozen_inference_graph.pb mo:/models/microorganism
 ```
 
 ```sh

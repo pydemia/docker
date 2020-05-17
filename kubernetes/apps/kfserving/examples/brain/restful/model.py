@@ -9,7 +9,8 @@ import cv2
 
 
 def _load_image_as_str(filename):
-    img = cv2.imread(filename)
+    img_bgr = cv2.imread(filename, cv2.IMREAD_COLOR)
+    img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
     string = base64.b64encode(cv2.imencode('.jpg', img)[1]).decode()
     return string
 

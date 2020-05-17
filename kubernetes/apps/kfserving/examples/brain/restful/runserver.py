@@ -1,25 +1,54 @@
 import os
+import argparse
 from flask import Flask, request
 from flask_restful import reqparse, abort, Api, Resource
 
 import model
 
+
 app = Flask(__name__)
 api = Api(app)
 
-parser = reqparse.RequestParser()
-#parser.add_argument('image')
 
-MODEL_NAME = 'microorganism'
-MODEL_PATH = os.path.join('/models', MODEL_NAME)
-# docker cp ../src/microorganism_13/model/frozen_inference_graph.pb mo:/models/microorganism
+main_parser = argparse.ArgumentParser('Arguments for Container')
+main_parser.add_argument(
+    '--port', type=int, default=8500,
+    dest='GRPC_PORT',
+    help='GRPC_PORT'
+)
+main_parser.add_argument(
+    '--rest_api_port', type=int, default=8501,
+    dest='REST_API_PORT',
+    help='REST_API_PORT'
+)
+main_parser.add_argument(
+    '--model_name', type=str, default='microorganism', required=True,
+    dest='MODEL_NAME',
+    help='MODEL_NAME'
+)
+main_parser.add_argument(
+    '--model_base_path', type=str, default='/models', required=True,
+    dest='MODEL_BASE_PATH',
+    help='MODEL_BASE_PATH'
+)
+
+main_args = main_parser.parse_args()
+GRPC_PORT = main_args.GRPC_PORT
+REST_PORT = main_args.REST_API_PORT  # 8501
+MODEL_NAME = main_args.MODEL_NAME  # ${MODEL_NAME}
+MODEL_PATH = main_args.MODEL_BASE_PATH  # ${MODEL_BASE_PATH}/${MODEL_NAME}
+
+predict_fn = model.predict
+
+# req_parser = reqparse.RequestParser()
+
 
 class Serving(Resource):
     def post(self, predict):
-        # args = parser.parse_args()
-        # args['image']: image_byte (base64)
-        # input_images = {'input_path': args['image']}
-        json_data = request.get_json(force=True)  #.encode('utf-8')
+
+        # req_args = req_parser.parse_args()
+
+        json_data = request.get_json(force=True)
 
         # {
         #     'instances': [
@@ -27,15 +56,14 @@ class Serving(Resource):
         #     ]
         # }
         input_instances = json_data['instances']
-        # input_images = json_data['instances'][0]['image_bytes']
+        result = predict_fn(input_instances, MODEL_PATH)
 
-        result = model.predict(input_instances, MODEL_PATH)
         return result, 201
 
-# URL: '/v1/models/$MODEL_NAME/<string:predict>'
+
 URL = os.path.join('/v1/models', MODEL_NAME + '<string:predict>')
 api.add_resource(Serving, URL)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8501)
+    app.run(debug=True, host='0.0.0.0', port=REST_PORT)
