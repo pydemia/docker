@@ -86,11 +86,13 @@ def predict(input_json, model_path):
         with open(annot_file, 'r') as annot:
             annot_string = annot.read()
         image_string = _load_image_as_str(image_file)
-        result.append = {
-            'key': str(_key),
-            'annotation': annot_string,
-            'image': image_string,
-        }
+        result.append(
+            {
+                'key': str(_key),
+                'annotation': annot_string,
+                'image': image_string,
+            }
+        )
 
     # result format
     # {

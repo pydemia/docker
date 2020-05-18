@@ -70,10 +70,10 @@ def mo_inference(model_path_n_file, input_path, output_file_path, output_image_p
 
     def detect_objects(filename, sess, detection_graph):
         #image = Image.open(filename)
-        image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-        image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
-        #image_np = load_image_into_numpy_array(image)
-        image_np = image
+        # image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+        # image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
+        image = Image.open(filename)
+        image_np = load_image_into_numpy_array(image)
 
         # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
         image_np_expanded = np.expand_dims(image_np, axis=0)
@@ -97,10 +97,8 @@ def mo_inference(model_path_n_file, input_path, output_file_path, output_image_p
             ano_util.save_boxes_and_labels_on_xml(export_path, image_np, np.squeeze(boxes), np.squeeze(classes).astype(np.int32), np.squeeze(scores), category_index, min_score_thresh=MIN_SCORE_THRESH, skip_scores=False, skip_labels=False)
 
         # Visualization of the results of a detection.
-        # image = Image.open(filename)
-        # logger.debug('image shape: {}'.format(image.shape))
-        # image_np = load_image_into_numpy_array(image)
-        image_np = load_image_as_nparray(filename)
+        image = Image.open(filename)
+        image_np = load_image_into_numpy_array(image)
         vis_util.visualize_boxes_and_labels_on_image_array(image_np, np.squeeze(boxes), np.squeeze(classes).astype(np.int32), np.squeeze(scores), category_index, min_score_thresh=MIN_SCORE_THRESH, use_normalized_coordinates=True, line_thickness=2)
         if output_image_path:
             export_path = file_handler.get_export_path_n_file(output_image_path, filename, '_result', 'jpg')
@@ -111,14 +109,43 @@ def mo_inference(model_path_n_file, input_path, output_file_path, output_image_p
     # Size, in inches, of the output images.
     IMAGE_SIZE = (12, 8)
 
-    def load_image_into_numpy_array(image):
-        (im_width, im_height) = image.size  # PIL: image.shape, cv2.imread: image.size
-        return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
+    # def load_image_into_numpy_array(image):
+    #     (im_width, im_height) = image.size  # PIL: image.shape, cv2.imread: image.size
+    #     return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
+#     resp = meth(*args, **kwargs)
+#   File "/tmp/skipc_microorganism_detection_model/runserver.py", line 59, in post
+#     result = predict_fn(input_instances, MODEL_PATH)
+#   File "/tmp/skipc_microorganism_detection_model/model.py", line 71, in predict
+#     gpu_id='-1',  # '-1' for CPU
+#   File "/tmp/skipc_microorganism_detection_model/modai/__init__.py", line 136, in mo_inference
+#     detect_objects(filenames[i], sess, detection_graph)
+#   File "/tmp/skipc_microorganism_detection_model/modai/__init__.py", line 75, in detect_objects
+#     image_np = load_image_into_numpy_array(image)
+#   File "/tmp/skipc_microorganism_detection_model/modai/__init__.py", line 112, in load_image_into_numpy_array
+#     (im_width, im_height) = image.size  # PIL: image.shape, cv2.imread: image.size
+# TypeError: 'int' object is not iterable
 
-    def load_image_as_nparray(filename):
-        img_bgr = cv2.imread(filename, cv2.IMREAD_COLOR)
-        img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-        return img
+
+#   File "/tmp/skipc_microorganism_detection_model/runserver.py", line 59, in post
+#     result = predict_fn(input_instances, MODEL_PATH)
+#   File "/tmp/skipc_microorganism_detection_model/model.py", line 71, in predict
+#     gpu_id='-1',  # '-1' for CPU
+#   File "/tmp/skipc_microorganism_detection_model/modai/__init__.py", line 152, in mo_inference
+#     detect_objects(filenames[i], sess, detection_graph)
+#   File "/tmp/skipc_microorganism_detection_model/modai/__init__.py", line 75, in detect_objects
+#     image_np = load_image_into_numpy_array(image)
+#   File "/tmp/skipc_microorganism_detection_model/modai/__init__.py", line 129, in load_image_into_numpy_array
+#     return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
+# AttributeError: 'numpy.ndarray' object has no attribute 'getdata'
+
+    # def load_image_into_numpy_array(image):
+    #     (im_width, im_height) = image.shape  # PIL: image.shape, cv2.imread: image.size
+    #     return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
+
+    def load_image_into_numpy_array(image):
+        # img_bgr = cv2.imread(filename, cv2.IMREAD_COLOR)
+        # img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        return np.array(image)
 
 
     # Load a frozen TF model

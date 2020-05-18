@@ -14,7 +14,8 @@ COPY model.py /tmp/skipc_microorganism_detection_model/
 COPY runserver.py /tmp/skipc_microorganism_detection_model/
 # COPY init_entrypoint.sh /usr/local/bin/
 
-COPY frozen_inference_graph.pb /models/microorganism
+# COPY frozen_inference_graph.pb /models/microorganism
+COPY frozen_inference_graph_model_14.pb /models/microorganism
 
 # RUN chmod u+x /usr/local/bin/init_entrypoint.sh
 EXPOSE 8500 8501

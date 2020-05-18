@@ -382,13 +382,59 @@ curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:
 Error from server: error when creating "microorganism.yaml": admission webhook "inferenceservice.kfserving-webhook-server.validator" denied the request: Exactly one of [Custom, ONNX, Tensorflow, TensorRT, SKLearn, XGBoost] must be specified in PredictorSpec
 ```
 
+
+---
+
+## Deploy in KFServing
+
+```sh
+$ kubectl create secret docker-registry \
+    yjkim-kube-admin-sa-gcr-private-key \
+    -n inference-test \
+    --docker-server=gcr.io \
+    --docker-username=_json_key_ \
+    --docker-password="$(cat ./ds-ai-platform-yjkim-kube-admin-sa-4129b72eaa4a.json)" \
+    --docker-email=yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com
+secret/yjkim-kube-admin-sa-gcr-private-key created
+```
+
+```sh
+kubectl patch sa default \
+-p '{"imagePullSecrets": [{"name": "yjkim-kube-admin-sa-gcr-private-key"}]}'
+# kubectl -n inference-test patch sa default \
+# -p '{"imagePullSecrets": [{"name": "yjkim-kube-admin-sa-gcr-private-key"}]}'
+# kubectl -n kfserving-system patch sa default \
+# -p '{"imagePullSecrets": [{"name": "yjkim-kube-admin-sa-gcr-private-key"}]}'
+```
+
+```yaml
+kubectl delete -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: yjkim-kube-admin-sa-gcr
+  namespace: kfserving-system
+secrets:
+  - name: yjkim-kube-admin-sa-gcr-private-key
+imagePullSecrets:
+  - name: yjkim-kube-admin-sa-gcr-private-key
+EOF
+
+#serviceaccount/yjkim-kube-admin-sa-gcr created
+```
+
+```sh
+$ kubectl apply -f microorganism_custom.yaml
+inferenceservice.serving.kubeflow.org/microorganism created
+```
+
 "tensorflow": {
             "image": "tensorflow/serving",
             "defaultImageVersion": "1.14.0",
             "defaultGpuImageVersion": "1.14.0-gpu",
             "allowedImageVersions": [
                "1.11.0",
-               "1.11.0-gpu",
+               "1.11.0-gpu", 
                "1.12.0",
                "1.12.0-gpu",
                "1.13.0",
