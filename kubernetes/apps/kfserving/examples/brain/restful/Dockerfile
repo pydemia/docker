@@ -4,6 +4,9 @@ ENV MODEL_BASE_PATH=/models
 RUN mkdir -p ${MODEL_BASE_PATH}
 ENV MODEL_NAME=model
 
+ARG CUDA_VISIBLE_DEVICES
+ENV CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES
+
 WORKDIR /tmp/skipc_microorganism_detection_model
 
 RUN pip install \

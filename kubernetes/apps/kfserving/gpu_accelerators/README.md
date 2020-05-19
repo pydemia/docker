@@ -7,11 +7,13 @@
 #     --accelerator type=[GPU_TYPE],count=[AMOUNT] --zone [COMPUTE_ZONE] \
 #     --cluster [CLUSTER_NAME] [--num-nodes 3 --min-nodes 0 --max-nodes 5 \
 #     --enable-autoscaling]
+TAGS="yjkim-kube-instance,yjkim-kube-istio,yjkim-kube-knative,yjkim-kube-kafka,yjkim-kube-subnetall"
 
 $ gcloud container node-pools create preemptible-gpu-t4-nodepool \
-    --accelerator type=nvidia-tesla-t4,count=1 --region us-central1 \
+    --accelerator type=nvidia-tesla-t4,count=1 \
+    --region us-central1 \
     --node-locations us-central1-a,us-central1-b,us-central1-f \
-    --node-taints=nvidia.com/gpu=NoSchedule
+    --node-taints=nvidia.com/gpu=present:NoSchedule,preemptible=true:NoSchedule
     --cluster kfserving-dev --num-nodes 2 --min-nodes 0 --max-nodes 5 \
     --enable-autoscaling \
     --preemptible \
@@ -19,6 +21,7 @@ $ gcloud container node-pools create preemptible-gpu-t4-nodepool \
     --no-enable-autoupgrade \
     --machine-type 
     --disk-type pd-standard \
+    --tags=$TAGS
 
 ```
 

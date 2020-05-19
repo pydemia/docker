@@ -2,7 +2,8 @@
 CLUSTER="kfserving-dev"
 REGION="us-central1"
 #ZONE="us-central1-a"
-NODE_LOCATIONS="us-central1-a,us-central1-b,us-central1-f"
+#NODE_LOCATIONS="us-central1-a,us-central1-b,us-central1-f"
+NODE_LOCATIONS="us-central1-f"
 NODE_TAINTS="nvidia.com/gpu=present:NoSchedule,preemptible=true:NoSchedule"
 
 
@@ -25,8 +26,7 @@ METADATA="disable-legacy-endpoints=true"
 LABELS="cz_owner=youngju_kim,application=kfserving,gpu=t4"
 TAGS="yjkim-kube-instance,yjkim-kube-istio,yjkim-kube-knative,yjkim-kube-kafka,yjkim-kube-subnetall"
 
-gcloud container node-pools create preemptible-gpu-t4-nodepool \
-    --preemptible \
+gcloud container node-pools create gpu-t4-nodepool \
     --cluster $CLUSTER \
     --node-taints=$NODE_TAINTS \
     --accelerator type=$ACCELERATOR_TYPE,count=$ACCELERATOR_COUNT \
@@ -46,3 +46,25 @@ gcloud container node-pools create preemptible-gpu-t4-nodepool \
     --max-pods-per-node $MAX_PODS_PER_NODE \
     --node-labels=$LABELS \
     --tags=$TAGS
+
+# gcloud container node-pools create preemptible-gpu-t4-nodepool \
+#     --preemptible \
+#     --cluster $CLUSTER \
+#     --node-taints=$NODE_TAINTS \
+#     --accelerator type=$ACCELERATOR_TYPE,count=$ACCELERATOR_COUNT \
+#     --region $REGION \
+#     --node-locations $NODE_LOCATIONS \
+#     --num-nodes $NUM_NODES --min-nodes $MIN_NODES --max-nodes $MAX_NODES \
+#     --enable-autoscaling \
+#     --service-account=$SERVICE_ACCOUNT \
+#     --enable-autorepair \
+#     --no-enable-autoupgrade \
+#     --machine-type $MACHINE_TYPE \
+#     --disk-type $DISK_TYPE \
+#     --disk-size $DISK_SIZE \
+#     --image-type $IMAGE_TYPE \
+#     --workload-metadata $WORKLOAD_METADATA \
+#     --metadata=$METADATA \
+#     --max-pods-per-node $MAX_PODS_PER_NODE \
+#     --node-labels=$LABELS \
+#     --tags=$TAGS

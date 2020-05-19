@@ -61,14 +61,14 @@ def predict(input_json, model_path):
     # os.makedirs(output_image_path, exist_ok=True)
 
     # to enforce CPU only: BEFORE import `tensorflow`
-    os.environ["CUDA_VISIBLE_DEVICES"] = '-1'
+    #os.environ["CUDA_VISIBLE_DEVICES"] = '-1'
     modai.mo_inference(
         model_path_n_file=model_path_n_file,
         input_path=[input_path],
         output_file_path=output_file_path,
         output_image_path=output_image_path,
         progress_path_n_file=log_name,
-        gpu_id='-1',  # '-1' for CPU
+        gpu_id=os.environ.get('CUDA_VISIBLE_DEVICES', '-1'),  # '-1' for CPU
     )
 
     result = []
