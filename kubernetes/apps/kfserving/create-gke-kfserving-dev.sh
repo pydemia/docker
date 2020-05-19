@@ -62,6 +62,7 @@ TAGS="yjkim-kube-instance,yjkim-kube-istio,yjkim-kube-knative,yjkim-kube-kafka,y
 SERVICE_ACCOUNT="yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com"
 
 WORKLOAD_POOL="${PROJECT_ID}.svc.id.goog" # Enable Workload Identity on the cluster. When enabled, Kubernetes service accounts will be able to act as Cloud IAM Service Accounts, through the provided workload pool. Currently, the only accepted workload pool is the workload pool of the Cloud project containing the cluster, `PROJECT_ID.svc.id.goog.`
+WORKLOAD_METADATA="GKE_METADATA"
 #--security-group=SECURITY_GROUP  # The name of the RBAC security group for use with Google security groups in Kubernetes RBAC (https://kubernetes.io/docs/reference/access-authn-authz/rbac/). If unspecified, no groups will be returned for use with RBAC.
 ISTIO_CONFIG="auth=MTLS_PERMISSIVE"
 METADATA="disable-legacy-endpoints=true"
@@ -96,7 +97,7 @@ gcloud beta container clusters create \
     --tags=$TAGS \
     --service-account=$SERVICE_ACCOUNT \
     --workload-pool=$WORKLOAD_POOL \
-    --workload-metadata=GKE_METADATA \
+    --workload-metadata=$WORKLOAD_METADATA \
     --shielded-integrity-monitoring \
     --enable-stackdriver-kubernetes \
     --enable-autorepair \

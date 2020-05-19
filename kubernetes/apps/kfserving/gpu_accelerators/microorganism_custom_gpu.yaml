@@ -25,9 +25,12 @@ spec:
             limits:
               cpu: 2
               memory: 4Gi
+              nvidia.com/gpu: 1
             requests:
               cpu: 2
               memory: 4Gi
+        nodeSelector:
+          cloud.google.com/gke-accelerator: nvidia-tesla-t4  # or nvidia-tesla-p100 or nvidia-tesla-p4 or nvidia-tesla-v100 or nvidia-tesla-k80
 
 #
 # kubectl get kpa -o yaml

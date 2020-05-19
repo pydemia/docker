@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: yjkim-kube-admin-sa-gcr
-  namespace: kfserving-system
+  namespace: 
 secrets:
   - name: yjkim-kube-admin-sa-gcr-private-key
 imagePullSecrets:
