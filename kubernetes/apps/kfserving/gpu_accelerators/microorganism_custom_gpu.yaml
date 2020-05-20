@@ -18,8 +18,8 @@ spec:
               value: "microorganism"
             - name: MODEL_BASE_PATH
               value: "/models"
-            # - name: STORAGE_URI
-            #   value: gs://brain-ds/microorganism_13/model/frozen_inference_graph.pb
+            - name: STORAGE_URI
+              value: gs://brain-ds/microorganism_13/model/frozen_inference_graph.pb
           ports:
             - containerPort: 8501
               protocol: TCP

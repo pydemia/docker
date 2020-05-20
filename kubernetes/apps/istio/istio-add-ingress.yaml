@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kfs-ingress
+  namespace: istio-system
+  # annotations:
+  #   kubernetes.io/ingress.global-static-ip-name: kfserving-dev-ip
+spec:
+  rules:
+    # - host: kfserving-dev.endpoints.ds-ai-platform.cloud.goog
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: istio-ingressgateway
+              servicePort: 80

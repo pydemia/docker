@@ -10,15 +10,23 @@ import cv2
 from PIL import Image
 
 
+def _load_b64_string_to_img(b64_byte_string):
+    image_bytes = base64.b64decode(image_byte_string)
+    image_data = BytesIO(image_bytes)
+    img = Image.open(image_data)
+    return img
+
+
 def _load_json_as_image(filename, output, type='rgb'):
     with open(filename, 'r') as f:
         result_list = json.load(f)
     
     for result in result_list:
-        image_byte_string = result['image']
-        image_bytes = base64.b64decode(image_byte_string)
-        image_data = BytesIO(image_bytes)
-        img = Image.open(image_data)
+        # image_byte_string = result['image']
+        # image_bytes = base64.b64decode(image_byte_string)
+        # image_data = BytesIO(image_bytes)
+        # img = Image.open(image_data)
+        img = _load_b64_string_to_img(result['image'])
         output_name = output + '_' + result['key'] + '.jpg'
         img.save(output_name)
 

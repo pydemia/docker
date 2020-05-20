@@ -249,6 +249,44 @@ echo '{
 ```yaml
 cat << EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: knative-services-gateway
+  namespace: knative-monitoring
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - "*"
+    port:
+      name: http-knative-service
+      number: 80
+      protocol: HTTP
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: prometheus-virtual-service
+  namespace: knative-monitoring
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - knative-services-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /prometheus/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: prometheus-system-np.knative-monitoring.svc.cluster.local
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: grafana-virtual-service
@@ -263,7 +301,7 @@ spec:
     # - method:
     #   exact: GET
     - uri:
-        prefix: /knative/grafana/
+        prefix: /grafana/
     rewrite:
       uri: /
     route:
@@ -275,5 +313,100 @@ EOF
 grafana.knative-monitoring.svc.cluster.local
 ```
 
+Restart Pod
+```sh
+kubectl -n knative-monitoring rollout restart deployment grafana
+```
+
+`grafana-custom-config`
+```yaml
+apiVersion: v1
+kind: ConfigMap
+name: grafana-custom-config
+  namespace: knative-monitoring
+data:
+  custom.ini: |
+    # You can customize Grafana via changing context of this field.
+    [auth.anonymous]
+    # enable anonymous access
+    enabled = true
+    [server]
+    protocol = http
+    domain = 35.223.25.173
+    http_port = 3000
+    root_url = %(protocol)s://%(domain)s:%(http_port)s/grafana/
+    serve_from_sub_path = true
+```
 
 
+---
+
+## Grafana on Istio
+
+```sh
+$ istioctl manifest apply --set values.grafana.enabled=true
+```
+
+```sh
+$ kubectl -n istio-system get svc prometheus
+$ kubectl -n istio-system get svc grafana
+```
+
+```
+$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
+$ istioctl dashboard prometheus
+$ istioctl dashboard grafana
+```
+
+
+## Kiali on Istio
+
+* `bash`
+```bash
+# Username
+$ KIALI_USERNAME=$(read -p 'Kiali Username: ' uval && echo -n $uval | base64)
+
+# Passphrase
+$ KIALI_PASSPHRASE=$(read -sp 'Kiali Passphrase: ' pval && echo -n $pval | base64)
+```
+
+* `zsh`
+```zsh
+$ KIALI_USERNAME=$(read '?Kiali Username: ' uval && echo -n $uval | base64)
+$ KIALI_PASSPHRASE=$(read -s "?Kiali Passphrase: " pval && echo -n $pval | base64)
+```
+
+Then, create a secret:
+```sh
+$ NAMESPACE=istio-system
+$ kubectl create namespace $NAMESPACE
+$ cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kiali
+  namespace: $NAMESPACE
+  labels:
+    app: kiali
+type: Opaque
+data:
+  username: $KIALI_USERNAME
+  passphrase: $KIALI_PASSPHRASE
+EOF
+secret/kiali created
+```
+
+Install `kiali` via `istioctl`
+
+```sh
+$ istioctl manifest apply --set values.kiali.enabled=true \
+  --set "values.kiali.dashboard.grafanaURL=http://grafana:3000"
+```
+
+istioctl manifest apply --set values.kiali.enabled=true \
+  --set values.grafana.enabled=true
+
+Generating a service graph
+```sh
+$ kubectl -n istio-system get svc kiali
+```
