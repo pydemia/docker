@@ -80,8 +80,24 @@ post_processing = mobnet.decode_predictions
 ```sh
 docker build -t pydemia/mobilenet_transformer:latest -f transformer.Dockerfile .
 docker tag pydemia/mobilenet_transformer:latest gcr.io/ds-ai-platform/mobilenet_transformer:latest
-#docker push gcr.io/ds-ai-platform/mobilenet_transformer:latest
+# docker push gcr.io/ds-ai-platform/mobilenet_transformer:latest
 ```
+
+
+```sh
+# Predictor: tensorflow/serving:1.15
+gsutil -m cp -r ./predictor/mobilenet_saved_model gs://yjkim-models/kfserving/mobilenet/predictor/
+
+# Transformer: custom container
+docker push docker push gcr.io/ds-ai-platform/mobilenet_transformer:latest
+
+# Exaplainer: alibi: type:AnchorImages
+gsutil -m cp -r ./explainer/mobilenet_explainer.dill gs://yjkim-models/kfserving/mobilenet/explainer/
+```
+
+
+
+```py
 # i = tf.keras.layers.Input([None, None, 3], dtype = tf.uint8)
 # x = tf.cast(i, tf.float32)
 # x = tf.keras.applications.mobilenet.preprocess_input(x, data_format=None)

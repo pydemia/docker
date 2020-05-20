@@ -1,0 +1,19 @@
+apiVersion: "serving.kubeflow.org/v1alpha2"
+kind: "InferenceService"
+metadata:
+  controller-tools.k8s.io: "1.0"
+  name: mobilenet
+  namespace: default
+spec:
+  default:
+    predictor:
+      tensorflow:
+        storageUri: "gs://yjkim-models/kfserving/mobilenet/predictor/mobilenet_saved_model"
+        runtimeVersion: "1.14.0"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi                        
+          limits:
+            cpu: 1000m
+            memory: 2Gi
