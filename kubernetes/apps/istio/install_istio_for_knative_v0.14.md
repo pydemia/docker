@@ -7,7 +7,7 @@
 ### Download `Istio`
 
 ```sh
-ISTIO_VERSION=1.4.1
+ISTIO_VERSION=1.4.6
 curl -sL https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} sh -
 cd istio-${ISTIO_VERSION}
 ```
@@ -36,7 +36,9 @@ EOF
 # A lighter template, with just pilot/gateway.
 # Based on install/kubernetes/helm/istio/values-istio-minimal.yaml
 helm template --namespace=istio-system \
-  --set prometheus.enabled=false \
+  --set prometheus.enabled=true \
+  --set value.kiali.enabled=true \
+  --set value.grafana.enabled=true \
   --set mixer.enabled=false \
   --set mixer.policy.enabled=false \
   --set mixer.telemetry.enabled=false \

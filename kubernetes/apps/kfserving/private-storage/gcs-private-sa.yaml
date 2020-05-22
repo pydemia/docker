@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gcs-private-sa
+  namespace: inference-test
+secrets:
+- name: gcs-private-key
+- name: gcs-private-sa-token-qhx6w
+imagePullSecrets:
+- name: gcr-private-key

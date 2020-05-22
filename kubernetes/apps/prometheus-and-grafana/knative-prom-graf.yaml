@@ -5,7 +5,7 @@ metadata:
   namespace: knative-monitoring
 spec:
   selector:
-    istio: ingressgateway
+    app.kubernetes.io/instance: ingress-nginx
   servers:
   - hosts:
     - "*"
@@ -14,37 +14,56 @@ spec:
       number: 80
       protocol: HTTP
 ---
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
 metadata:
-  name: grafana-virtual-service
-  namespace: knative-monitoring
+  name: kfserving-ingress
+  namespace: gke-system
+  annotations:
 spec:
-  hosts:
-  - "*"
-  gateways:
-  - knative-monitoring-gateway
-  http:
-  - match:
-    # - method:
-    #   exact: GET
-    - uri:
-        prefix: /grafana/
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        host: grafana.knative-monitoring.svc.cluster.local
-        port:
-          name: http-knativegrafana
-          number: 30802
-          protocol: HTTP
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: istio-ingress
+          servicePort: 80
+---
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: monitoring-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # kubernetes.io/tls-acme: 'true'
+    # nginx.ingress.kubernetes.io/tls-acme: 'true'
+spec: 
+  rules:
+  - http:
+      paths:
+      - path: /grafana/
+        backend:
+          serviceName: grafana
+          servicePort: 30802
+        path: /prometheus/
+        backend:
+          serviceName: prometheus-system-np
+          servicePort: 8080
+EOF
+---
+
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: grafana
-  namespace: knative-monitoring
+  namespace: knative-serving
 spec:
   host: grafana.knative-monitoring.svc.cluster.local
   trafficPolicy:
@@ -55,12 +74,12 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: prometheus-virtual-service
-  namespace: knative-monitoring
+  namespace: knative-serving
 spec:
   hosts:
   - "*"
   gateways:
-  - knative-monitoring-gateway
+  - knative-ingress-gateway
   http:
   - match:
     - uri:
@@ -73,13 +92,13 @@ spec:
         port:
           name: http-knativeprometheus
           number: 8080
-          protocol: HTTP
+          protocol: HTTPcluster-local-gateway
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: prometheus
-  namespace: knative-monitoring
+  namespace: knative-serving
 spec:
   host: prometheus-system-np.knative-monitoring.svc.cluster.local
   trafficPolicy:

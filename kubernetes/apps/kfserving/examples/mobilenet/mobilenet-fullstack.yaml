@@ -1,0 +1,63 @@
+apiVersion: "serving.kubeflow.org/v1alpha2"
+kind: "InferenceService"
+metadata:
+  controller-tools.k8s.io: "1.0"
+  name: mobilenet-fullstack
+spec:
+  default:
+    predictor:
+      serviceAccountName: s3-private-sa
+      tensorflow:
+        storageUri: "s3://yjkim-models/kfserving/mobilenet/predictor/mobilenet_saved_model"
+        runtimeVersion: "1.14.0"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 5Gi                        
+          limits:
+            cpu: 1000m
+            memory: 10Gi
+    transformer:
+      serviceAccountName: s3-private-sa
+      custom:
+        imagePullSecrets:
+        - name: docker-secret-key
+        container:
+          image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.1.1
+          name: kfserving-container
+          resources:
+            requests:
+              cpu: 400m
+              memory: 3Gi
+            limits:
+              cpu: 1000m
+              memory: 4Gi
+    explainer:
+      serviceAccountName: s3-private-sa
+      alibi:
+        type: AnchorImages
+        storageUri: "s3://yjkim-models/kfserving/mobilenet/explainer"
+        config:
+          batch_size: "1"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 5Gi            
+          limits:
+            cpu: 500m
+            memory: 10Gi
+
+
+# kubectl -n inference-test get inferenceservice mobilenet-fullstack
+# kubectl -n inference-test describe inferenceservice mobilenet-fullstack
+# kubectl -n inference-test describe deployment mobilenet-fullstack
+# kubectl -n inference-test get events mobilenet-fullstack
+# kubectl -n inference-test get ksvc mobilenet-fullstack-predictor-default -o yaml
+# kubectl -n inference-test get ksvc mobilenet-fullstack-explainer-default -o yaml
+# kubectl -n inference-test get ksvc mobilenet-fullstack-transformer-default -o yaml
+# kubectl -n inference-test get kpa -o yaml
+# kubectl -n inference-test get pods mobilenet-fullstack
+# kubectl -n inference-test get pods mobilenet-fullstack
+# kubectl -n inference-test describe deployment mobilenet-fullstack
+# kubectl -n inference-test get revision mobilenet-fullstack-predictor-default-ttlpz -o yaml
+# 

@@ -34,8 +34,8 @@ spec:
 
 #
 # kubectl get kpa -o yaml
-# kubectl get ksvc microorganism-predictor-default -o yaml
-# kubectl -n inference-test get revision microorganism-predictor-default-ttlpz -o yaml
+# kubectl get ksvc microorganism-gpu-predictor-default -o yaml
+# kubectl -n inference-test get revision microorganism-gpu-predictor-default-ttlpz -o yaml
 # kubectl label ns inference-test serving.kubeflow.org/inferenceservice=enabled
 # apiVersion: "serving.kubeflow.org/v1alpha2"
 # kind: "InferenceService"

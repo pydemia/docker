@@ -5,7 +5,9 @@
 ### ~~Prerequisite~~
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/knative/serving/release-0.14/third_party/istio-1.4.7/istio-knative-extras.yaml
+# kubectl apply -f https://raw.githubusercontent.com/knative/serving/release-0.14/third_party/istio-1.4.7/istio-knative-extras.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/knative/serving/master/third_party/istio-1.4.9/istio-knative-extras.yaml
 ```
 
 ```sh
@@ -48,7 +50,8 @@ kubectl apply --filename https://github.com/knative/serving/releases/download/v0
 #### Pick a networking layer (`Istio`)
 ```sh
 # 3-1. Install the Knative Istio controller:
-kubectl apply --filename https://github.com/knative/serving/releases/download/v0.14.0/serving-istio.yaml
+# kubectl apply --filename https://github.com/knative/serving/releases/download/v0.14.0/serving-istio.yaml
+kubectl apply --filename https://github.com/knative/net-istio/releases/download/v0.14.0/release.yaml
 # 3-2. Fetch the External IP or CNAME:
 kubectl --namespace istio-system get service istio-ingressgateway
 # Save this for configuring DNS below.

@@ -384,43 +384,31 @@ Error from server: error when creating "microorganism.yaml": admission webhook "
 
 
 ---
+## Set private
+
 
 ## Deploy in KFServing
 
-```sh
-$ kubectl create secret docker-registry \
-    yjkim-kube-admin-sa-gcr-private-key \
-    -n inference-test \
-    --docker-server=gcr.io \
-    --docker-username=_json_key_ \
-    --docker-password="$(cat ./ds-ai-platform-yjkim-kube-admin-sa-4129b72eaa4a.json)" \
-    --docker-email=yjkim-kube-admin-sa@ds-ai-platform.iam.gserviceaccount.com
-secret/yjkim-kube-admin-sa-gcr-private-key created
-```
 
 ```sh
-kubectl patch sa default \
--p '{"imagePullSecrets": [{"name": "yjkim-kube-admin-sa-gcr-private-key"}]}'
-# kubectl -n inference-test patch sa default \
-# -p '{"imagePullSecrets": [{"name": "yjkim-kube-admin-sa-gcr-private-key"}]}'
-# kubectl -n kfserving-system patch sa default \
-# -p '{"imagePullSecrets": [{"name": "yjkim-kube-admin-sa-gcr-private-key"}]}'
-```
+kubectl get ksvc microorganism-predictor-default -o yaml
+kubectl get inferenceservice microorganism
 
-```yaml
-kubectl delete -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: yjkim-kube-admin-sa-gcr
-  namespace: kfserving-system
-secrets:
-  - name: yjkim-kube-admin-sa-gcr-private-key
-imagePullSecrets:
-  - name: yjkim-kube-admin-sa-gcr-private-key
-EOF
+MODEL_NAME=microorganism
+INPUT_PATH=@./Project_TileScan_1.json
+CLUSTER_IP=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+#sleep 20s
+SERVICE_HOSTNAME=$(kubectl get inferenceservice ${MODEL_NAME} -o jsonpath='{.status.url}' | cut -d "/" -f 3)
+echo "
+CLUSTER_IP      : $CLUSTER_IP
+SERVICE_HOSTNAME: $SERVICE_HOSTNAME"
+curl -m 960 -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
 
-#serviceaccount/yjkim-kube-admin-sa-gcr created
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
+
+curl -v \
+    http://microorganism.default.35.223.25.173.xip.io/v1/models/microorganism:predict \
+    -d '@./Project_TileScan_1.json' > ./Project_TileScan_1_result.json
 ```
 
 ```sh

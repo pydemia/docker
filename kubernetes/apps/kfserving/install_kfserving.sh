@@ -46,7 +46,9 @@ EOF
 # A lighter template, with just pilot/gateway.
 # Based on install/kubernetes/helm/istio/values-istio-minimal.yaml
 helm template --namespace=istio-system \
-  --set prometheus.enabled=false \
+  --set prometheus.enabled=true \
+  --set value.kiali.enabled=true \
+  --set value.grafana.enabled=true \
   --set mixer.enabled=false \
   --set mixer.policy.enabled=false \
   --set mixer.telemetry.enabled=false \
@@ -121,8 +123,10 @@ curl -sL https://github.com/knative/net-istio/releases/download/${KNATIVE_VERSIO
 
 kubectl --namespace istio-system get service istio-ingressgateway
 # # 4. Configure DNS: Magic DNS (`xip.io`)
-curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/serving-default-domain.yaml -O && \
-    kubectl apply -f serving-default-domain.yaml
+# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/serving-default-domain.yaml -O && \
+#     kubectl apply -f serving-default-domain.yaml
+
+kubectl apply --filename https://github.com/knative/serving/releases/download/v0.14.0/serving-default-domain.yaml
 # 4. Real DNS
 # 4-A. If the networking layer produced an External IP address,
 # then configure a wildcard A record for the domain:
@@ -211,12 +215,14 @@ curl -sL https://github.com/knative/eventing-contrib/releases/download/${KNATIVE
 #     kubectl apply -f channel-broker.yaml
 
 # # 8. Observability Plugins (FEATURE STATE: deprecated @ Knative v0.14)
-# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-core.yaml -O && \
-#     kubectl apply -f monitoring-core.yaml
-# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-metrics-prometheus.yaml -O && \
-#     kubectl apply -f monitoring-metrics-prometheus.yaml
-# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-tracing-zipkin-in-mem.yaml -O && \
-#     kubectl apply -f monitoring-tracing-zipkin-in-mem.yaml
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-core.yaml -O && \
+    kubectl apply -f monitoring-core.yaml
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-metrics-prometheus.yaml -O && \
+    kubectl apply -f monitoring-metrics-prometheus.yaml
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-tracing-zipkin-in-mem.yaml -O && \
+    kubectl apply -f monitoring-tracing-zipkin-in-mem.yaml
+curl -sL https://github.com/knative/serving/releases/download/v0.14.0/monitoring-tracing-jaeger-in-mem.yaml -O && \
+    kubectl apply -f monitoring-tracing-jaeger-in-mem.yaml
 
 sleep 20
 cd ..
@@ -226,8 +232,9 @@ cd ..
 DIR="kfserving-${KFSERVING_VERSION}"
 mkdir -p ${DIR};cd ${DIR}
 
-wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/${KFSERVING_VERSION}/kfserving.yaml \
-    -O "kfserving-${KFSERVING_VERSION}.yaml"
+#wget https://raw.githubusercontent.com/kubeflow/kfserving/master/install/v0.3.0/kfserving.yaml -O "kfserving-${KFSERVING_VERSION}.yaml"
+curl -sL https://raw.githubusercontent.com/kubeflow/kfserving/master/install/${KFSERVING_VERSION}/kfserving.yaml \
+    -o "kfserving-${KFSERVING_VERSION}.yaml"
 kubectl apply -f "kfserving-${KFSERVING_VERSION}.yaml"
 
 # Setting for KFServing pod mutator
@@ -241,8 +248,11 @@ kubectl -n knative-serving patch configmap/config-istio \
   --patch \
 '{"data": {"gateway.knative-serving.knative-ingress-gateway": "istio-ingressgateway.istio-system.svc.cluster.local","local-gateway.knative-serving.cluster-local-gateway": "cluster-local-gateway.istio-system.svc.cluster.local","local-gateway.mesh": "mesh"}}'
 
+# kubectl -n knative-serving get cm config-istio \
+#   -o jsonpath="{.data['gateway\.knative-ingress-gateway']}"
+
 kubectl -n knative-serving get cm config-istio \
-  -o jsonpath="{.data['gateway\.knative-ingress-gateway']}"
+  -o jsonpath="{.data['gateway\.knative-serving\.knative-ingress-gateway']}"
 
 cd ..
 

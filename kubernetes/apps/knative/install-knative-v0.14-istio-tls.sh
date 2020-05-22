@@ -100,6 +100,7 @@ curl -L "https://github.com/knative/eventing-contrib/releases/download/v0.14.0/k
 ## Install a Broker (eventing) layer: Channel-based, Kafka Channel
 curl -sL https://github.com/knative/eventing/releases/download/${KNATIVE_VERSION}/channel-broker.yaml -O && \
     kubectl apply -f channel-broker.yaml
+kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.14.0/channel-broker.yaml
 # To customize which broker channel implementation is used,
 # update the following ConfigMap to specify which configurations are used for which namespaces:
 # ConfigMap: `config-br-defaults`
@@ -113,13 +114,15 @@ curl -sL https://github.com/knative/eventing-contrib/releases/download/${KNATIVE
 # curl -sL https://github.com/knative/eventing/releases/download/${KNATIVE_VERSION}/channel-broker.yaml -O && \
 #     kubectl apply -f channel-broker.yaml
 
-# # 8. Observability Plugins (FEATURE STATE: deprecated @ Knative v0.14)
-# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-core.yaml -O && \
-#     kubectl apply -f monitoring-core.yaml
-# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-metrics-prometheus.yaml -O && \
-#     kubectl apply -f monitoring-metrics-prometheus.yaml
-# curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-tracing-zipkin-in-mem.yaml -O && \
-#     kubectl apply -f monitoring-tracing-zipkin-in-mem.yaml
+# 8. Observability Plugins (FEATURE STATE: deprecated @ Knative v0.14)
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-core.yaml -O && \
+    kubectl apply -f monitoring-core.yaml
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-metrics-prometheus.yaml -O && \
+    kubectl apply -f monitoring-metrics-prometheus.yaml
+curl -sL https://github.com/knative/serving/releases/download/v0.14.0/monitoring-tracing-jaeger-in-mem.yaml -O && \
+    kubectl apply -f monitoring-tracing-jaeger-in-mem.yaml
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-tracing-zipkin-in-mem.yaml -O && \
+    kubectl apply -f monitoring-tracing-zipkin-in-mem.yaml
 
 
 cd $PWD_START

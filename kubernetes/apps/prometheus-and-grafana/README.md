@@ -410,3 +410,190 @@ Generating a service graph
 ```sh
 $ kubectl -n istio-system get svc kiali
 ```
+
+---
+
+# Ingress via `nginx`
+
+```sh
+curl -sL https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/cloud/deploy.yaml -o nginx-ingress-controller.yaml && \
+kubectl apply -f nginx-ingress-controller.yaml
+```
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1beta1
+# Ingress
+kind: Ingress
+metadata:
+  name: monitoring-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+    # certmanager.k8s.io/cluster-issuer: letsencrypt
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # kubernetes.io/tls-acme: 'true'
+    # nginx.ingress.kubernetes.io/tls-acme: 'true'
+spec: 
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: ingress-nginx
+          servicePort: 80
+      - path: /monitoring/knative/grafana/
+        backend:
+          serviceName: grafana.knative-monitoring.svc.cluster.local
+          servicePort: 3000
+      - path: /monitoring/knative/prometheus/
+        backend:
+          serviceName: prometheus-system-np.knative-monitoring.svc.cluster.local
+          servicePort: 9090
+      - path: /monitoring/istio/kiali/
+        backend:
+          serviceName: kiali.istio-system.svc.cluster.local
+          servicePort: 20001
+      - path: /monitoring/istio/grafana/
+        backend:
+          serviceName: grafana.istio-system.svc.cluster.local
+          servicePort: 3000
+      - path: /monitoring/istio/prometheus/
+        backend:
+          serviceName: prometheus.istio-system.svc.cluster.local
+          servicePort: 9090
+EOF
+```
+
+```yaml
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: https
+  - name: http-grafana
+    nodePort: 30802
+    port: 80
+    protocol: TCP
+    targetPort: 30802
+  - name: http-prometheus
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+EOF
+```
+kubectl -n gke-system patch svc istio-ingress \
+    --type=json -p - <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "NodePort"
+  },
+  {
+    "op": "remove",
+    "path": "/status"
+  }
+]
+EOF
+
+kubectl -n knative-monitoring expose svc grafana \
+        --type ExternalName  --target-port 3000
+
+```yaml
+kubectl -n knative-monitoring patch svc grafana \
+    --type=json -p - <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "ExternalName"
+  },
+  {
+    "op": "remove",
+    "path": "/status"
+  }
+]
+EOF
+,
+  {
+    "op": "add",
+    "path": "/spec/externalName",
+    "value": "grafana.knative-monitoring.svc.cluster.local"
+  }
+kubectl -n knative-monitoring patch svc prometheus-system-np \
+    --type=json -p - <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "ExternalName"
+  },
+  {
+    "op": "add",
+    "path": "/spec/externalName",
+    "value": "prometheus-system-np.knative-monitoring.svc.cluster.local"
+  }
+]
+EOF
+kubectl -n istio-system patch svc kiali \
+    --type=json -p - <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "ExternalName"
+  },
+  {
+    "op": "add",
+    "path": "/spec/externalName",
+    "value": "kiali.istio-system.svc.cluster.local"
+  }
+]
+EOF
+kubectl -n istio-system patch svc grafana \
+    --type=json -p - <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "ExternalName"
+  },
+  {
+    "op": "add",
+    "path": "/spec/externalName",
+    "value": "grafana.istio-system.svc.cluster.local"
+  }
+]
+EOF
+kubectl -n istio-system patch svc prometheus \
+    --type=json -p - <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/type",
+    "value": "ExternalName"
+  },
+  {
+    "op": "add",
+    "path": "/spec/externalName",
+    "value": "prometheus.istio-system.svc.cluster.local"
+  }
+]
+EOF
+```

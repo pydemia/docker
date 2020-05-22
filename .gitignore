@@ -3,6 +3,8 @@ kubernetes/apps/kfserving/examples/brain/restful/*.pb
 kubernetes/apps/kfserving/examples/brain/src/*
 *credential.json
 *key.json
+gcloud-application-credentials.json
+s3-private.yaml
 
 __pycache__/
 #*.pyc

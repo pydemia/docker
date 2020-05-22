@@ -2,12 +2,14 @@ from alibi.datasets import fetch_imagenet
 from alibi.explainers import AnchorImage
 import dill
 import tensorflow as tf
+import numpy as np
 
 print('tensorflow: ', tf.__version__)
 
 
 # model = tf.saved_model.load('../predictor/mobilenet_saved_model')
-model = tf.keras.models.load_model('../predictor/mobilenet_saved_model')
+#model = tf.keras.models.load_model('../predictor/mobilenet_saved_model')
+model = tf.keras.models.load_model('./mobilenet_saved_model')
 
 
 
@@ -43,10 +45,10 @@ full_data = np.concatenate(full_data)
 full_labels = np.concatenate(full_labels)
 
 
-data.shape
-explainer.fit(
-    fetch_imagenet
-)
+# data.shape
+# explainer.fit(
+#     fetch_imagenet
+# )
 
 # Clear explainer predict_fn as its a lambda and will be reset when loaded
 explainer.predict_fn = None

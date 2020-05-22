@@ -82,5 +82,9 @@ curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}
     kubectl apply -f monitoring-core.yaml
 curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-metrics-prometheus.yaml -O && \
     kubectl apply -f monitoring-metrics-prometheus.yaml
+curl -sL https://github.com/knative/serving/releases/download/v0.14.0/monitoring-tracing-jaeger-in-mem.yaml -O && \
+    kubectl apply -f monitoring-tracing-jaeger-in-mem.yaml
+curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/monitoring-tracing-zipkin-in-mem.yaml -O && \
+    kubectl apply -f monitoring-tracing-zipkin-in-mem.yaml
 
 cd $PWD_START

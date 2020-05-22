@@ -1,4 +1,5 @@
-FROM python:3.7-slim
+#FROM python:3.7-slim
+FROM pydemia/mobilenet_transformer:tf1.15.2-0.1.0
 
 RUN mkdir -p /workspace
 WORKDIR /workspace

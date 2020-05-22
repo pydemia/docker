@@ -96,8 +96,10 @@ kubectl patch \
 * KFServing를 서비스하는 Ingress Gateway 확인
 
 ```sh
+# $ kubectl -n knative-serving get cm config-istio \
+#   -o jsonpath="{.data['gateway\.knative-ingress-gateway']}"
 $ kubectl -n knative-serving get cm config-istio \
-  -o jsonpath="{.data['gateway\.knative-ingress-gateway']}"
+  -o jsonpath="{.data['gateway\.knative-serving\.knative-ingress-gateway']}"
 istio-ingressgateway.istio-system.svc.cluster.local
 ```
 
@@ -141,7 +143,7 @@ $ kubectl -n kfserving-system get cm inferenceservice-config -o jsonpath="{.data
 ```sh
 # kubectl -n istio-system get service istio-ingressgateway
 $ kubectl -n knative-serving get cm config-istio \
-    -o jsonpath="{.data['gateway\.knative-ingress-gateway']}" | cut -d '.' -f1,2 | IFS=. read ING_NM ING_NS && \
+    -o jsonpath="{.data['gateway\.knative-serving\.knative-ingress-gateway']}" | cut -d '.' -f1,2 | IFS=. read ING_NM ING_NS && \
     kubectl -n $ING_NS get service $ING_NM
 
 $ kubectl -n kfserving-system get cm inferenceservice-config \
@@ -174,6 +176,8 @@ If you are creating namespaces manually using Kubernetes apis directly,
 
 ```sh
 kubectl create ns inference-test
+kubectl label ns inference-test serving.kubeflow.org/inferenceservice=enabled
+
 kubectl apply -f - <<EOF
 apiVersion: "serving.kubeflow.org/v1alpha2"
 kind: "InferenceService"
@@ -232,7 +236,10 @@ Samples are [here](https://github.com/kubeflow/kfserving/tree/master/docs/sample
 * `scikit-learn: iris`
 ```bash
 INFERENCE_NS=inference-test
+INFERENCE_NS=infer
 kubectl create ns $INFERENCE_NS
+
+kubectl label ns $INFERENCE_NS serving.kubeflow.org/inferenceservice=enabled
 
 # YAML
 curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/sklearn/sklearn.yaml -O
@@ -259,6 +266,8 @@ curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:
 INFERENCE_NS=inference-test
 kubectl create ns $INFERENCE_NS
 
+kubectl label ns $INFERENCE_NS serving.kubeflow.org/inferenceservice=enabled
+
 # YAML
 curl -fsSL https://raw.githubusercontent.com/kubeflow/kfserving/master/docs/samples/tensorflow/tensorflow-canary.yaml -O
 # INPUT SAMPLE
@@ -279,11 +288,14 @@ echo "$CLUSTER_IP, $SERVICE_HOSTNAME"
 curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH
 ```
 
+```sh
+kubectl label ns default serving.kubeflow.org/inferenceservice=enabled
+kubectl label ns infer serving.kubeflow.org/inferenceservice=enabled
+```
+
 ---
 
 ### Custom Image & Input
-
-
 
 ---
 
