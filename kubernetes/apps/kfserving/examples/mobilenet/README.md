@@ -224,28 +224,23 @@ SERVICE_HOSTNAME=$(kubectl -n $INFERENCE_NS get inferenceservice $MODEL_NAME -o 
 echo "$CLUSTER_IP, $SERVICE_HOSTNAME"
 
 # PREDICTION
-curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH > ./output.json
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict -d $INPUT_PATH > ./output_predict.json
 
 # EXPLANATION
 # BUG: env_var not working
 # curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:explain -d $INPUT_PATH > ./output_explain.json
 
-
 curl -v -H "Host: ${SERVICE_HOSTNAME}" http://35.223.25.173/v1/models/mobilenet-fullstack:explain -d @./input_numpy.json > ./output_explain.json
 
+# DELETE
+# kubectl -n $INFERENCE_NS delete -f mobilenet-fullstack.yaml
+```
 
-curl -v -H "Host: ${SERVICE_HOSTNAME}" http://35.223.25.173/v1/models/mobilenet-fullstack:explain -d @./input_for_explainer.json > ./output_explain.json
+In log, 
 
-curl -v -H "Host: ${SERVICE_HOSTNAME}" http://35.223.25.173/v1/models/mobilenet-fullstack:explain -d "@./input_multi.json" > ./output_explain.json
+* Get Logs
 
-
-
-
-
-* Connected to 35.223.25.173 (35.223.25.173) port 80 (#0)
-> POST /v1/models/mobilenet-fullstack:predict HTTP/1.1
-> Host: mobilenet-fullstack.default.35.223.25.173.xip.io
-# Get Logs
+```sh
 INFERENCE_NS="default"
 
 # MODEL_NAME="mobilenet"
@@ -253,14 +248,20 @@ INFERENCE_NS="default"
 # MODEL_NAME="mobilenet-exp"  # mobilenet, explainer
 MODEL_NAME="mobilenet-fullstack"  # mobilenet, transformer, explainer
 
-kubectl -n $INFERENCE_NS logs "$(kubectl -n $INFERENCE_NS get pods -l model=$MODEL_NAME,component=transformer -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container
+# Transformer
+kubectl -n $INFERENCE_NS logs "$(kubectl -n $INFERENCE_NS get pods -l model=$MODEL_NAME,component=transformer -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container > ./mobilenet_fullstack_transformer.log
 
-kubectl -n $INFERENCE_NS logs "$(kubectl -n $INFERENCE_NS get pods -l model=$MODEL_NAME,component=predictor -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container
+# Predictor
+kubectl -n $INFERENCE_NS logs "$(kubectl -n $INFERENCE_NS get pods -l model=$MODEL_NAME,component=predictor -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container > ./mobilenet_fullstack_predictor.log
 
-kubectl -n $INFERENCE_NS logs "$(kubectl -n $INFERENCE_NS get pods -l model=$MODEL_NAME,component=explainer -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container
-
-kubectl -n default logs "$(kubectl -n default get pods -l model=mobnet,component=explainer -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container
+# Explainer
+kubectl -n $INFERENCE_NS logs "$(kubectl -n $INFERENCE_NS get pods -l model=$MODEL_NAME,component=explainer -o jsonpath='{.items[0].metadata.name}')" -c kfserving-container > ./mobilenet_fullstack_explainer.log
 ```
+
+:warning: According to the log of transformer, `dict_keys(['predictions'])` was logged multiple times, for about 4 min, with multiple pods. with `batch_size` in `explainer.yaml` can reduce ETA for explaining.
+
+When `batch_size == 1`, it tooks 3:34 min, 2 `explainer, transformer, predictor` pods each. `dict_keys(['predictions'])` was logged **164 times**.
+When `batch_size == 13`, it tooks 4:45 min, 2 `explainer` pods. `dict_keys(['predictions'])` was logged **13 times**.
 
 :warning:
 ```sh
@@ -289,7 +290,7 @@ DWTcja49DWvN1rJuvvGgZl34zAmezGs8NtYEdjWhf/AOpH1/xrPHU1jLcpHbW0omtY3B4YCkccFT0NVN
 ```
 
 ---
-## Test explainer
+## Test explainer in `local`
 
 * RUN Predictor
 ```sh
@@ -324,11 +325,12 @@ docker run --rm -it \
     --batch_size 1
 ```
 
+* Get responses
 ```sh
-#CLUSTER_IP="127.0.0.1:8501"  # You can call predict on explainer IP
+# CLUSTER_IP="127.0.0.1:8501"
+CLUSTER_IP="127.0.0.1:8081"   # You can call predict on explainer IP.
+SERVICE_HOSTNAME="predictor"  # You can call predict on Hostname `explainer` either.
 
-CLUSTER_IP="127.0.0.1:8081"
-SERVICE_HOSTNAME="predictor"
 MODEL_NAME="mobilenet-exp"
 INPUT_PATH="@./input_numpy.json"
 
@@ -339,7 +341,6 @@ python test_explainer_local.py \
     --op predict
 
 
-# CLUSTER_IP="127.0.0.1:8081"
 # SERVICE_HOSTNAME="explainer"
 MODEL_NAME="mobilenet-exp"
 INPUT_PATH="@./input_numpy.json"
