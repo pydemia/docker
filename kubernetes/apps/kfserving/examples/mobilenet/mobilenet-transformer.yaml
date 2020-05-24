@@ -23,7 +23,7 @@ spec:
         imagePullSecrets:
         - name: docker-secret-key
         container:
-          image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.1.1
+          image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.2.0
           name: kfserving-container
           # resources:
           #   requests:

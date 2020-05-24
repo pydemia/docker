@@ -4,5 +4,12 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"python.pythonPath": "/home/pydemia/apps/anaconda3/envs/kfserving/bin/python",
+		"python.condaPath": "/home/pydemia/apps/anaconda3/bin/conda",
+		// "python.dataScience.notebookFileRoot": "${workspaceFolder}",
+		"python.dataScience.notebookFileRoot": "${fileDirname}",
+		"python.terminal.executeInFileDir": true
+	},
+	"[css]": {}
 }

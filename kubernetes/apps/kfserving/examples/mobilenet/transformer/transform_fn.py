@@ -23,33 +23,17 @@ print('tensorflow: ', tf.__version__)
 # )
 
 
-# Preprocessing -----------------------------
-def _load_b64_string_to_img(b64_byte_string):
-    image_bytes = base64.b64decode(b64_byte_string)
-    image_data = BytesIO(image_bytes)
-    img = Image.open(image_data)
-    return img
-
-
-def preprocess_fn(instance):
-    img = _load_b64_string_to_img(instance['input_1'])
-    img_resized = img.resize([224, 224], resample=Image.BILINEAR)
-    img_array = tf.keras.preprocessing.image.img_to_array(img_resized)
-    # The inputs pixel values are scaled between -1 and 1, sample-wise.
-    x = tf.keras.applications.mobilenet.preprocess_input(
-        img_resized,
-        data_format='channels_last',
-    )
-    #x = np.expand_dims(x, axis=0)
-    return x
-
-
-# Postprocessing ----------------------------
-def postprocess_fn(pred):
-    decoded = tf.keras.applications.mobilenet.decode_predictions(
-        [pred], top=5
-    )
-    return decoded
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):   # pylint: disable=arguments-differ,method-hidden
+        if isinstance(obj, (
+                np.int_, np.intc, np.intp, np.int8, np.int16, np.int32, np.int64, np.uint8,
+                np.uint16, np.uint32, np.uint64)):
+            return int(obj)
+        elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
+            return float(obj)
+        elif isinstance(obj, (np.ndarray,)):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 
 def _load_b64_string_to_img(b64_byte_string):

@@ -10,45 +10,61 @@ spec:
       tensorflow:
         storageUri: "s3://yjkim-models/kfserving/mobilenet/predictor/mobilenet_saved_model"
         runtimeVersion: "1.14.0"
-        resources:
-          requests:
-            cpu: 500m
-            memory: 5Gi                        
-          limits:
-            cpu: 1000m
-            memory: 10Gi
+        # resources:
+        #   requests:
+        #     cpu: 500m
+        #     memory: 5Gi                        
+        #   limits:
+        #     cpu: 1000m
+        #     memory: 10Gi
     transformer:
       serviceAccountName: s3-private-sa
       custom:
         imagePullSecrets:
         - name: docker-secret-key
         container:
-          image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.1.1
+          image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.2.0
           name: kfserving-container
-          resources:
-            requests:
-              cpu: 400m
-              memory: 3Gi
-            limits:
-              cpu: 1000m
-              memory: 4Gi
+          # resources:
+          #   requests:
+          #     cpu: 400m
+          #     memory: 3Gi
+          #   limits:
+          #     cpu: 1000m
+          #     memory: 4Gi
     explainer:
+      # serviceAccountName: s3-private-sa
+      # custom:
+      #   imagePullSecrets:
+      #   - name: docker-secret-key
+      #   container:
+      #     image: docker.io/pydemia/alibiexplainer:v0.4.0
+      #     name: kfserving-container
+      #     env:
+      #     - name: MODEL_NAME
+      #       value: microorganism
+      #     - name: MODEL_BASE_PATH
+      #       value: /mnt/models
+      #     - name: STORAGE_URI
+      #       value: s3://yjkim-models/kfserving/mobilenet/explainer
       serviceAccountName: s3-private-sa
       alibi:
         type: AnchorImages
         storageUri: "s3://yjkim-models/kfserving/mobilenet/explainer"
+        runtimeVersion: "v0.3.2-predict_fn"
         config:
           batch_size: "1"
-        resources:
-          requests:
-            cpu: 200m
-            memory: 5Gi            
-          limits:
-            cpu: 500m
-            memory: 10Gi
+        # resources:
+        #   requests:
+        #     cpu: 200m
+        #     memory: 5Gi            
+        #   limits:
+        #     cpu: 500m
+        #     memory: 10Gi
 
 
-# kubectl -n inference-test get inferenceservice mobilenet-fullstack
+
+    # kubectl -n inference-test get inferenceservice mobilenet-fullstack
 # kubectl -n inference-test describe inferenceservice mobilenet-fullstack
 # kubectl -n inference-test describe deployment mobilenet-fullstack
 # kubectl -n inference-test get events mobilenet-fullstack
