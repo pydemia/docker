@@ -53,7 +53,7 @@ spec:
         storageUri: "s3://yjkim-models/kfserving/mobilenet/explainer"
         runtimeVersion: "v0.3.2-predict_fn"
         config:
-          batch_size: "1"
+          batch_size: "30"
         # resources:
         #   requests:
         #     cpu: 200m

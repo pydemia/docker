@@ -47,8 +47,10 @@ EOF
 # Based on install/kubernetes/helm/istio/values-istio-minimal.yaml
 helm template --namespace=istio-system \
   --set prometheus.enabled=true \
-  --set value.kiali.enabled=true \
-  --set value.grafana.enabled=true \
+  --set values.prometheus.enabled=true \
+  --set values.kiali.enabled=true \
+  --set values.grafana.enabled=true \
+  --set values.tracing.enabled=true \
   --set mixer.enabled=false \
   --set mixer.policy.enabled=false \
   --set mixer.telemetry.enabled=false \

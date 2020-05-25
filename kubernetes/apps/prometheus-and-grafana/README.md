@@ -1,132 +1,32 @@
-# Kubernetes Monitoring via `prometheus` and `grafana`
+# Expose Monitoring
+`Istio == 1.4`
+<https://archive.istio.io/v1.4/docs/tasks/observability/gateways/>
+
+
+## Installation
+
+
+### Install `grafana` on Istio
 
 ```sh
-#kubectl -n istio-system get svc grafana
-#kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
-
-$ kubectl -n knative-monitoring get svc grafana
-NAME      TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)           AGE
-grafana   NodePort   10.187.1.204   <none>        30802:30178/TCP   23h
-
-$ kubectl -n knative-monitoring port-forward $(kubectl -n knative-monitoring get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:30178 &
-
-$ kubectl port-forward --namespace knative-monitoring \
-$(kubectl get pods --namespace knative-monitoring \
---selector=app=grafana --output=jsonpath="{.items..metadata.name}") \
-3000
-
-$ gcloud container clusters get-credentials kfserving-dev --region us-central1 --project ds-ai-platform \
- && kubectl port-forward --namespace istio-system $(kubectl get pod --namespace istio-system --selector="app=istio-ingressgateway,istio=ingressgateway,release=release-name" --output jsonpath='{.items[0].metadata.name}') 8080:15031
-
-$ gcloud container clusters get-credentials kfserving-dev --region us-central1 --project ds-ai-platform \
- && kubectl port-forward --namespace knative-monitoring $(kubectl get pod --namespace istio-system --selector="app=istio-ingressgateway,istio=ingressgateway,release=release-name" --output jsonpath='{.items[0].metadata.name}') 8080:15031
+$ istioctl manifest apply --set values.grafana.enabled=true
 ```
 
-
-```yaml
-cat << EOF | kubectl apply -f -
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: knative-services-gateway
-  namespace: knative-monitoring
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-  - port:
-      name: http-knative-service
-      number: 80
-      protocol: HTTP
-    hosts:
-    - "*"
-  #   # - knative-grafana.${MY_DOMAIN}
-  #   # - knative-prometheus.${MY_DOMAIN}
-  #   # - knative-tekton.${MY_DOMAIN}
-  # - port:
-  #     number: 443
-  #     name: https-knative-services
-  #     protocol: HTTPS
-  #   hosts:
-  #   - "*"
-  #   # - knative-grafana.${MY_DOMAIN}
-  #   # - knative-prometheus.${MY_DOMAIN}
-  #   tls:
-  #     credentialName: ingress-cert-${LETSENCRYPT_ENVIRONMENT}
-  #     mode: SIMPLE
-  #     privateKey: sds
-  #     serverCertificate: sds
-# ---
-# apiVersion: networking.istio.io/v1alpha3
-# kind: DestinationRule
-# metadata:
-#   name: grafana
-#   namespace: istio-system
-# spec:
-#   host: grafana.istio-system.svc.cluster.local
-#   trafficPolicy:
-#     tls:
-#       mode: DISABLE
-# ---
-# apiVersion: networking.istio.io/v1alpha3
-# kind: DestinationRule
-# metadata:
-#   name: grafana
-#   namespace: istio-system
-# spec:
-#   host: grafana.istio-system.svc.cluster.local
-#   trafficPolicy:
-#     tls:
-#       mode: DISABLE
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: grafana-virtual-service
-  namespace: knative-monitoring
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - knative-services-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /grafana
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        host: grafana.knative-monitoring.svc.cluster.local
-        port:
-          number: 3000
-          # number: 30802
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: prometheus-virtual-service
-  namespace: knative-monitoring
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - knative-services-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /prometheus/
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        host: prometheus-system-np.knative-monitoring.svc.cluster.local
-        port:
-          number: 8080
-EOF
+```sh
+$ kubectl -n istio-system get svc prometheus
+$ kubectl -n istio-system get svc grafana
 ```
 
-## Create a new organization and an API Token
+```
+$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
+$ istioctl dashboard prometheus
+$ istioctl dashboard grafana
+```
+
+#### Set `grafana`
+
+
+##### Create a new organization and an API Token
 
 ```sh
 $ CLUSTER_GRAFANA=35.223.25.173/knative/grafana
@@ -203,121 +103,6 @@ kubectl -n knative-serving describe deploy controller
 kubectl get pods --namespace knative-monitoring
 kubectl port-forward -n knative-monitoring $(kubectl get pods -n knative-monitoring -l=app=grafana --output=jsonpath="{.items..metadata.name}") 30802
 
-```sh
-GET /api/dashboards/home
-
-```
-
-
-
-
-# kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
-kubectl -n knative-monitoring port-forward $(kubectl -n knative-monitoring get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000
-
-
-echo '{
-  "dashboard": {
-    "annotations": {
-          "list":[]
-      },
-    "editable": true,
-    "gnetId": null,
-    "graphTooltip": 0,
-    "id": null,
-    "iteration": 1529322539820,
-    "links":[],
-    "panels": [{}],
-    "schemaVersion": 16,
-    "style": "dark",
-    "tags": [],
-    "templating": {
-        "list": []
-    },
-    "time": {},
-    "timepicker": {},
-    "timezone": "",
-    "title": "name of the dashboard",
-    "uid": "uid",
-    "version": 1,
-    "__inputs": [],
-    "__requires": []
-  },
-  "inputs": [],
-  "overwrite": false
-}' > grafana-dashboard-import.json
-
-```yaml
-cat << EOF | kubectl apply -f -
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: knative-services-gateway
-  namespace: knative-monitoring
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-  - hosts:
-    - "*"
-    port:
-      name: http-knative-service
-      number: 80
-      protocol: HTTP
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: prometheus-virtual-service
-  namespace: knative-monitoring
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - knative-services-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /prometheus/
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        host: prometheus-system-np.knative-monitoring.svc.cluster.local
-        port:
-          number: 8080
----
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: grafana-virtual-service
-  namespace: knative-monitoring
-spec:
-  hosts:
-  - "*"
-  gateways:
-  - knative-services-gateway
-  http:
-  - match:
-    # - method:
-    #   exact: GET
-    - uri:
-        prefix: /grafana/
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        host: grafana.knative-monitoring.svc.cluster.local
-        port:
-          number: 30802
-EOF
-grafana.knative-monitoring.svc.cluster.local
-```
-
-Restart Pod
-```sh
-kubectl -n knative-monitoring rollout restart deployment grafana
-```
-
 `grafana-custom-config`
 ```yaml
 apiVersion: v1
@@ -339,27 +124,22 @@ data:
 ```
 
 
----
 
-## Grafana on Istio
-
-```sh
-$ istioctl manifest apply --set values.grafana.enabled=true
-```
+### Install `kiali` on Istio
 
 ```sh
-$ kubectl -n istio-system get svc prometheus
-$ kubectl -n istio-system get svc grafana
+$ istioctl manifest apply --set values.kiali.enabled=true \
+  --set "values.kiali.dashboard.grafanaURL=http://grafana:3000"
 ```
 
-```
-$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
-$ istioctl dashboard prometheus
-$ istioctl dashboard grafana
+istioctl manifest apply --set values.kiali.enabled=true \
+  --set values.grafana.enabled=true
+
+Generating a service graph
+```sh
+$ kubectl -n istio-system get svc kiali
 ```
 
-
-## Kiali on Istio
 
 * `bash`
 ```bash
@@ -371,8 +151,8 @@ $ KIALI_PASSPHRASE=$(read -sp 'Kiali Passphrase: ' pval && echo -n $pval | base6
 ```
 
 * `zsh`
-```zsh
 $ KIALI_USERNAME=$(read '?Kiali Username: ' uval && echo -n $uval | base64)
+```zsh
 $ KIALI_PASSPHRASE=$(read -s "?Kiali Passphrase: " pval && echo -n $pval | base64)
 ```
 
@@ -396,204 +176,245 @@ EOF
 secret/kiali created
 ```
 
-Install `kiali` via `istioctl`
+--- 
+
+# Exposing Dashboards
+
+## Istio, HTTP
+
+* `grafana`: --set values.grafana.enabled=true
+* `kiali`: --set values.kiali.enabled=true
+* `prometheus`: --set values.prometheus.enabled=true
+* `tracing`: --set values.tracing.enabled=true
 
 ```sh
-$ istioctl manifest apply --set values.kiali.enabled=true \
-  --set "values.kiali.dashboard.grafanaURL=http://grafana:3000"
+# cd prometheus-and-grafana
+
+kubectl apply -f expose-istio-grafana-http.yaml
+kubectl apply -f expose-istio-kiali-http.yaml
+kubectl apply -f expose-istio-prometheus-http.yaml
+kubectl apply -f expose-istio-tracing-http.yaml
 ```
 
-istioctl manifest apply --set values.kiali.enabled=true \
-  --set values.grafana.enabled=true
+* `grafana`: http://$CLUSTER_IP:15031
+* `kiali`: http://$CLUSTER_IP:15029
+* `prometheus`: http://$CLUSTER_IP:15030
+* `tracing`: http://$CLUSTER_IP:15032
 
-Generating a service graph
-```sh
-$ kubectl -n istio-system get svc kiali
-```
 
----
+expose-istio-grafana-http-url.yaml  expose-istio-prometheus-http.yaml  grafana-dashboard-import.json                                     nginx-ingress-controller.yaml
+expose-istio-grafana-http.yaml      expose-istio-tracing-http.yaml     knative-prom-graf.yaml                                            README.md
+expose-istio-kiali-http.yaml        expose-monitoring.yaml  
 
-# Ingress via `nginx`
 
-```sh
-curl -sL https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/cloud/deploy.yaml -o nginx-ingress-controller.yaml && \
-kubectl apply -f nginx-ingress-controller.yaml
-```
+### `grafana`
 
 ```yaml
-kubectl apply -f - <<EOF
-apiVersion: networking.k8s.io/v1beta1
-# Ingress
-kind: Ingress
+$ cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
 metadata:
-  name: monitoring-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    kubernetes.io/ingress.class: nginx
-    # certmanager.k8s.io/cluster-issuer: letsencrypt
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # kubernetes.io/tls-acme: 'true'
-    # nginx.ingress.kubernetes.io/tls-acme: 'true'
-spec: 
-  rules:
-  - http:
-      paths:
-      - path: /*
-        backend:
-          serviceName: ingress-nginx
-          servicePort: 80
-      - path: /monitoring/knative/grafana/
-        backend:
-          serviceName: grafana.knative-monitoring.svc.cluster.local
-          servicePort: 3000
-      - path: /monitoring/knative/prometheus/
-        backend:
-          serviceName: prometheus-system-np.knative-monitoring.svc.cluster.local
-          servicePort: 9090
-      - path: /monitoring/istio/kiali/
-        backend:
-          serviceName: kiali.istio-system.svc.cluster.local
-          servicePort: 20001
-      - path: /monitoring/istio/grafana/
-        backend:
-          serviceName: grafana.istio-system.svc.cluster.local
-          servicePort: 3000
-      - path: /monitoring/istio/prometheus/
-        backend:
-          serviceName: prometheus.istio-system.svc.cluster.local
-          servicePort: 9090
-EOF
-```
-
-```yaml
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Service
-metadata:
-  name: ingress-nginx
-  namespace: ingress-nginx
+  name: grafana-gateway
+  namespace: istio-system
 spec:
-  type: LoadBalancer
   selector:
-    app.kubernetes.io/name: ingress-nginx
-    app.kubernetes.io/part-of: ingress-nginx
-  ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: https
-  - name: http-grafana
-    nodePort: 30802
-    port: 80
-    protocol: TCP
-    targetPort: 30802
-  - name: http-prometheus
-    port: 8080
-    protocol: TCP
-    targetPort: 8080
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 15031
+      name: http-grafana
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - grafana-gateway
+  http:
+  - match:
+    - port: 15031
+    route:
+    - destination:
+        host: grafana
+        port:
+          number: 3000
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: grafana
+  namespace: istio-system
+spec:
+  host: grafana
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
 EOF
 ```
-kubectl -n gke-system patch svc istio-ingress \
-    --type=json -p - <<EOF
-[
-  {
-    "op": "replace",
-    "path": "/spec/type",
-    "value": "NodePort"
-  },
-  {
-    "op": "remove",
-    "path": "/status"
-  }
-]
-EOF
 
-kubectl -n knative-monitoring expose svc grafana \
-        --type ExternalName  --target-port 3000
+### `kiali`
 
 ```yaml
-kubectl -n knative-monitoring patch svc grafana \
-    --type=json -p - <<EOF
-[
-  {
-    "op": "replace",
-    "path": "/spec/type",
-    "value": "ExternalName"
-  },
-  {
-    "op": "remove",
-    "path": "/status"
-  }
-]
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kiali-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 15029
+      name: http-kiali
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kiali-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - kiali-gateway
+  http:
+  - match:
+    - port: 15029
+    route:
+    - destination:
+        host: kiali
+        port:
+          number: 20001
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: kiali
+  namespace: istio-system
+spec:
+  host: kiali
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
 EOF
-,
-  {
-    "op": "add",
-    "path": "/spec/externalName",
-    "value": "grafana.knative-monitoring.svc.cluster.local"
-  }
-kubectl -n knative-monitoring patch svc prometheus-system-np \
-    --type=json -p - <<EOF
-[
-  {
-    "op": "replace",
-    "path": "/spec/type",
-    "value": "ExternalName"
-  },
-  {
-    "op": "add",
-    "path": "/spec/externalName",
-    "value": "prometheus-system-np.knative-monitoring.svc.cluster.local"
-  }
-]
+```
+
+### `prometheus`
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: prometheus-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 15030
+      name: http-prom
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: prometheus-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - prometheus-gateway
+  http:
+  - match:
+    - port: 15030
+    route:
+    - destination:
+        host: prometheus
+        port:
+          number: 9090
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: prometheus
+  namespace: istio-system
+spec:
+  host: prometheus
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
 EOF
-kubectl -n istio-system patch svc kiali \
-    --type=json -p - <<EOF
-[
-  {
-    "op": "replace",
-    "path": "/spec/type",
-    "value": "ExternalName"
-  },
-  {
-    "op": "add",
-    "path": "/spec/externalName",
-    "value": "kiali.istio-system.svc.cluster.local"
-  }
-]
-EOF
-kubectl -n istio-system patch svc grafana \
-    --type=json -p - <<EOF
-[
-  {
-    "op": "replace",
-    "path": "/spec/type",
-    "value": "ExternalName"
-  },
-  {
-    "op": "add",
-    "path": "/spec/externalName",
-    "value": "grafana.istio-system.svc.cluster.local"
-  }
-]
-EOF
-kubectl -n istio-system patch svc prometheus \
-    --type=json -p - <<EOF
-[
-  {
-    "op": "replace",
-    "path": "/spec/type",
-    "value": "ExternalName"
-  },
-  {
-    "op": "add",
-    "path": "/spec/externalName",
-    "value": "prometheus.istio-system.svc.cluster.local"
-  }
-]
+```
+
+### tracing
+
+```yaml
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: tracing-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 15032
+      name: http-tracing
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: tracing-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - tracing-gateway
+  http:
+  - match:
+    - port: 15032
+    route:
+    - destination:
+        host: tracing
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: tracing
+  namespace: istio-system
+spec:
+  host: tracing
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
 EOF
 ```

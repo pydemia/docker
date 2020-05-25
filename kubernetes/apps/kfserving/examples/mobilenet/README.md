@@ -215,6 +215,7 @@ INPUT_PATH="@./input_numpy.json"
 #INPUT_PATH="@./input_multi.json"
 
 # APPLY
+# kubectl -n $INFERENCE_NS apply -f mobilenet-explainer.yaml
 # kubectl -n $INFERENCE_NS apply -f mobilenet-fullstack.yaml
 
 kubectl -n $INFERENCE_NS wait --for=condition=ready --timeout=90s\
@@ -230,7 +231,9 @@ curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:
 # BUG: env_var not working
 # curl -v -H "Host: ${SERVICE_HOSTNAME}" http://$CLUSTER_IP/v1/models/$MODEL_NAME:explain -d $INPUT_PATH > ./output_explain.json
 
-curl -v -H "Host: ${SERVICE_HOSTNAME}" http://35.223.25.173/v1/models/mobilenet-fullstack:explain -d @./input_numpy.json > ./output_explain.json
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://35.223.25.173/v1/models/mobilenet-fullstack:explain -d @./input_numpy.json > ./output_explain_sm.json
+
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://35.223.25.173/v1/models/mobilenet-exp:explain -d @./input_numpy.json
 
 # DELETE
 # kubectl -n $INFERENCE_NS delete -f mobilenet-fullstack.yaml
@@ -351,3 +354,34 @@ python test_explainer_local.py \
     --hostname $SERVICE_HOSTNAME \
     --op explain
 ```
+
+---
+
+curl -v -H Host:mobnet.default.34.94.79.203.xip.io mobnet.default.34.94.79.203.xip.io http
+://34.94.79.203/v1/models/mobnet:explain -d @./input_numpy.json
+
+INFERENCE_NS="default"
+MODEL_NAME="mobnet"
+CLUSTER_IP="34.94.79.203"
+SERVICE_HOSTNAME="mobnet.default.34.94.79.203.xip.io"
+
+curl -v -H "Host:$SERVICE_HOSTNAME mobnet.default.34.94.79.203.xip.io" http://$CLUSTER_IP/v1/models/$MODEL_NAME:explain -d @./input.json
+
+
+curl -v -H "Host: mobnet.default.34.94.79.203.xip.io" http://34.94.79.203/v1/models/mobnet:explain -d @./input.json
+
+curl -v -H "Host: mobnet.default.34.94.79.203.xip.io" http://34.94.79.203/v1/models/mobnet:explain -d @./input_numpy.json
+
+
+curl -v -H "Host: mobnet.default.34.94.79.203.xip.io" http://34.94.79.203/v1/models/mobnet:predict -d @./input_numpy.json
+
+
+curl -v -H "Host: ${SERVICE_HOSTNAME}" http://34.94.79.203/v1/models/mobilenet-fullstack:explain -d @./input_numpy.json > ./output_explain_sm.json
+
+
+
+python test_explainer_local.py \
+    --cluster_ip $CLUSTER_IP \
+    --model_name $MODEL_NAME \
+    --hostname $SERVICE_HOSTNAME \
+    --op explain
