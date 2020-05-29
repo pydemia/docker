@@ -1,3 +1,16 @@
+# User-defined
+
+# Large files
+examples/inferenceservices/mobilenet/test_explainer_local_output_explain.json
+
+# Secrets
+gcloud-application-credentials.json
+ds-ai-platform-yjkim-kube-admin-sa-4129b72eaa4a-key.json
+s3-private.yaml
+pydemia-s3-private-key.yaml
+yjkim1-s3-private-key.yaml
+
+
 *.linux-amd64.tar.gz
 kubernetes/apps/kfserving/examples/brain/restful/*.pb
 kubernetes/apps/kfserving/examples/brain/src/*

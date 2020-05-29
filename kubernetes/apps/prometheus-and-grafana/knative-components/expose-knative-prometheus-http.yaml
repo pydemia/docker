@@ -1,0 +1,39 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: prometheus-vs
+  namespace: knative-monitoring
+spec:
+  hosts:
+  - "*"
+  gateways:
+  # This is the gateway shared in knative service mesh.
+  - knative-ingress-gateway.knative-serving.svc.cluster.local
+  http:
+  - match:
+    - method:
+        exact: GET
+      uri:
+        prefix: /knative/prometheus
+    rewrite:
+      # Rewrite the original host header to the host header of Search service
+      # in order to redirect requests to Search service.
+      authority: prometheus-system-np.knative-monitoring.svc.cluster.local
+      uri: /
+    route:
+    - destination:
+        host: prometheus-system-np.knative-monitoring.svc.cluster.local
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: prometheus-system-np
+  namespace: knative-monitoring
+spec:
+  host: prometheus-system-np
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---

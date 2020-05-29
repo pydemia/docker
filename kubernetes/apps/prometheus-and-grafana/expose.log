@@ -1,0 +1,12 @@
+gateway.networking.istio.io/grafana-gateway created
+virtualservice.networking.istio.io/grafana-vs created
+destinationrule.networking.istio.io/grafana created
+gateway.networking.istio.io/kiali-gateway created
+virtualservice.networking.istio.io/kiali-vs created
+destinationrule.networking.istio.io/kiali created
+gateway.networking.istio.io/prometheus-gateway created
+virtualservice.networking.istio.io/prometheus-vs created
+destinationrule.networking.istio.io/prometheus created
+gateway.networking.istio.io/tracing-gateway created
+virtualservice.networking.istio.io/tracing-vs created
+destinationrule.networking.istio.io/tracing created

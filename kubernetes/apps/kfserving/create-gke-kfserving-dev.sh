@@ -4,7 +4,7 @@ NETWORK="yjkim-vpc"  # "default" or VPC
 SUBNETWORK="yjkim-kube-subnet"
 
 PROJECT_ID="ds-ai-platform"
-CLUSTER_NM="kfserving-dev"
+CLUSTER_NM="kfserving-devel"
 REGION="us-central1"
 #ZONE="us-central1-a"
 CLUSTER_VERSION="1.15.9-gke.24"
@@ -20,9 +20,9 @@ MASTER_IPV4_CIDR="172.31.1.32/28"
 #SERVICE_IPV4_CIDR="172.16.0.0/16"  # Set the IP range for the services IPs. Can be specified as a netmask size (e.g. '/20') or as in CIDR notion (e.g. '10.100.0.0/20').  Can not be specified unless '--enable-ip-alias' is also specified.
 
 DISK_TYPE="pd-standard"  #  pd-standard, pd-ssd
-DISK_SIZE="100GB"  # default: 100GB
+DISK_SIZE="50GB"  # default: 100GB
 IMAGE_TYPE="UBUNTU"  # COS, UBUNTU, COS_CONTAINERD, UBUNTU_CONTAINERD, WINDOWS_SAC, WINDOWS_LTSC (gcloud container get-server-config)
-MACHINE_TYPE="n1-standard-4" # 4CPUs, 16GB (gcloud compute machine-types list) <https://cloud.google.com/compute/vm-instance-pricing>
+MACHINE_TYPE="n1-standard-8" # 4CPUs, 32GB (gcloud compute machine-types list) <https://cloud.google.com/compute/vm-instance-pricing>
 
 # #--- [GPUs]: Check AZ for GPU model Availability <https://cloud.google.com/compute/docs/gpus#gpus-list> ---#
 # # (gcloud compute accelerator-types list) ,count: default 1

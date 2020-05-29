@@ -1,0 +1,12 @@
+data:
+  custom.ini: |
+    # You can customize Grafana via changing context of this field.
+    [auth.anonymous]
+    # enable anonymous access
+    enabled = true
+    [server]
+    protocol = http
+    domain = localhost
+    http_port = 3000
+    root_url = %(protocol)s://%(domain)s:%(http_port)s/knative/grafana/
+    serve_from_sub_path = true

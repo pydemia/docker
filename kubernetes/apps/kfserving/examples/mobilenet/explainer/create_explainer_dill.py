@@ -20,10 +20,13 @@ print('tensorflow: ', tf.__version__)
 
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--model', '-m', type=str, required=True)
+parser.add_argument('--output', '-o', type=str, default='./explainer/explainer.dill')
 
 ARGS = parser.parse_args()
 
-MODEL_PATH = ARGS.model  # './mobilenet_saved_model/0001'
+MODEL_PATH = ARGS.model  # './predictor/mobilenet_saved_model/0001'
+OUTPUT = ARGS.output
+
 model = tf.keras.models.load_model(MODEL_PATH)
 
 predict_fn = lambda x: model.predict(x)
@@ -43,7 +46,7 @@ explainer = AnchorImage(
 explainer.predict_fn = None
 explainer.predictor = None
 
-with open("./explainer.dill", 'wb') as f:
+with open(OUTPUT, 'wb') as f:
     dill.dump(explainer, f)
 # joblib.dump(model, 'model.joblib')
 

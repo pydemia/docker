@@ -6,7 +6,7 @@ metadata:
 spec:
   default:
     predictor:
-      serviceAccountName: s3-private-sa
+      serviceAccountName: yjkim-private-deployer-s3
       tensorflow:
         storageUri: "s3://yjkim-models/kfserving/mobilenet/predictor/mobilenet_saved_model"
         # runtimeVersion: "1.14.0"
@@ -34,7 +34,7 @@ spec:
       #       value: s3://yjkim-models/kfserving/mobilenet/explainer
       #   config:
       #     batch_size: "1"
-      serviceAccountName: s3-private-sa
+      serviceAccountName: yjkim-private-deployer-s3
       alibi:
         type: AnchorImages
         storageUri: "s3://yjkim-models/kfserving/mobilenet/explainer"

@@ -6,7 +6,7 @@ metadata:
 spec:
   default:
     predictor:
-      serviceAccountName: s3-private-sa
+      serviceAccountName: yjkim-private-deployer-s3
       tensorflow:
         storageUri: "s3://yjkim-models/kfserving/mobilenet/predictor/mobilenet_saved_model"
         # runtimeVersion: "1.14.0"
@@ -18,10 +18,10 @@ spec:
         #     cpu: 1000m
         #     memory: 2Gi
     transformer:
-      serviceAccountName: s3-private-sa
+      serviceAccountName: yjkim-private-deployer-gs
       custom:
         imagePullSecrets:
-        - name: docker-secret-key
+        - name: pydemia-docker-private-key
         container:
           image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.2.0
           name: kfserving-container

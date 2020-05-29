@@ -151,16 +151,21 @@ $ KIALI_PASSPHRASE=$(read -sp 'Kiali Passphrase: ' pval && echo -n $pval | base6
 ```
 
 * `zsh`
-$ KIALI_USERNAME=$(read '?Kiali Username: ' uval && echo -n $uval | base64)
 ```zsh
+# Username
+$ KIALI_USERNAME=$(read '?Kiali Username: ' uval && echo -n $uval | base64)
+
+# Passphrase
 $ KIALI_PASSPHRASE=$(read -s "?Kiali Passphrase: " pval && echo -n $pval | base64)
 ```
 
 Then, create a secret:
 ```sh
-$ NAMESPACE=istio-system
-$ kubectl create namespace $NAMESPACE
-$ cat <<EOF | kubectl apply -f -
+$ NAMESPACE=istio-system && \
+  kubectl create namespace $NAMESPACE
+
+$ NAMESPACE=istio-system && \
+  cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -418,3 +423,50 @@ spec:
 ---
 EOF
 ```
+
+---
+
+# Expose Knative-monitoring
+
+<https://grafana.com/docs/grafana/latest/installation/configuration/>
+
+## Grafana
+
+```sh
+data:
+  custom.ini: |
+    # You can customize Grafana via changing context of this field.
+    [auth.anonymous]
+    # enable anonymous access
+    enabled = true
+    [server]
+    protocol = http
+    domain = localhost
+    http_port = 3000
+    root_url = %(protocol)s://%(domain)s:%(http_port)s/knative/grafana/
+    serve_from_sub_path = true
+```
+
+
+```sh
+$ kubectl -n knative-monitoring patch configmap/grafana-custom-config \
+    --type merge -p "$(cat patch-knative-monitoring-grafana-custom-config-ini.yaml)"
+configmap/grafana-custom-config patched
+
+$ kubectl -n knative-monitoring rollout restart deployment grafana
+deployment.extensions/grafana restarted
+```
+
+---
+
+
+목록:
+| namespace | service | address |
+| :------------ | :------ | :------ |
+| istio-system | kiali | <http://kfs.pydemia.org:15029> |
+| istio-system | prometheus | <http://kfs.pydemia.org:15030> |
+| istio-system | grafana | <http://kfs.pydemia.org:15031> |
+| istio-system | tracing | <http://kfs.pydemia.org:15032> |
+| istio-system | zipkin | <http://kfs.pydemia.org:15033> |
+| knative-monitoring | grafana | <http://kfs.pydemia.org/knative/grafana> |
+| knative-monitoring | prometheus-system-np | <http://kfs.pydemia.org:15034> |

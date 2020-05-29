@@ -53,7 +53,7 @@ helm template --namespace=istio-system \
   --set values.tracing.enabled=true \
   --set mixer.enabled=false \
   --set mixer.policy.enabled=false \
-  --set mixer.telemetry.enabled=false \
+  --set mixer.telemetry.enabled=true \
   `# Pilot doesn't need a sidecar.` \
   --set pilot.sidecar=false \
   --set pilot.resources.requests.memory=128Mi \
@@ -172,8 +172,9 @@ spec:
          class: istio
 EOF
 # TLS via HTTP01
-curl https://github.com/knative/net-http01/releases/download/${KNATIVE_VERSION}/release.yaml 0 serving-http01.yaml && \
+curl https://github.com/knative/net-http01/releases/download/${KNATIVE_VERSION}/release.yaml -O serving-http01.yaml && \
     kubectl apply --filename serving-http01.yaml
+wget https://github.com/knative/net-http01/releases/download/v0.14.0/release.yaml -O serving-http01.yaml
 # TLS wildcard
 curl -sL https://github.com/knative/serving/releases/download/${KNATIVE_VERSION}/serving-nscert.yaml -O && \
     kubectl apply -f serving-nscert.yaml

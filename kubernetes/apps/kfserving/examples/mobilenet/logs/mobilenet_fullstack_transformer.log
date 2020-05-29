@@ -1,0 +1,5 @@
+[I 200528 20:28:50 mobilenet_transformer:19] tensorflow: 1.15.2
+[I 200528 20:28:50 kfserver:88] Registering model: mobilenet-fullstack
+[I 200528 20:28:50 kfserver:77] Listening on port 8080
+[I 200528 20:28:50 kfserver:79] Will fork 0 workers
+[I 200528 20:28:50 process:126] Starting 8 processes

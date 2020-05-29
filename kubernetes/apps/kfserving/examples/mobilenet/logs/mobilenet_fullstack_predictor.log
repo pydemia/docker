@@ -1,0 +1,19 @@
+2020-05-28 20:25:45.818295: I tensorflow_serving/model_servers/server.cc:82] Building single TensorFlow model file config:  model_name: mobilenet-fullstack model_base_path: /mnt/models
+2020-05-28 20:25:45.818539: I tensorflow_serving/model_servers/server_core.cc:462] Adding/updating models.
+2020-05-28 20:25:45.818567: I tensorflow_serving/model_servers/server_core.cc:561]  (Re-)adding model: mobilenet-fullstack
+2020-05-28 20:25:45.919823: I tensorflow_serving/core/basic_manager.cc:739] Successfully reserved resources to load servable {name: mobilenet-fullstack version: 1}
+2020-05-28 20:25:45.919869: I tensorflow_serving/core/loader_harness.cc:66] Approving load for servable version {name: mobilenet-fullstack version: 1}
+2020-05-28 20:25:45.919888: I tensorflow_serving/core/loader_harness.cc:74] Loading servable version {name: mobilenet-fullstack version: 1}
+2020-05-28 20:25:45.919921: I external/org_tensorflow/tensorflow/contrib/session_bundle/bundle_shim.cc:363] Attempting to load native SavedModelBundle in bundle-shim from: /mnt/models/0001
+2020-05-28 20:25:45.919937: I external/org_tensorflow/tensorflow/cc/saved_model/reader.cc:31] Reading SavedModel from: /mnt/models/0001
+2020-05-28 20:25:45.964947: I external/org_tensorflow/tensorflow/cc/saved_model/reader.cc:54] Reading meta graph with tags { serve }
+2020-05-28 20:25:46.029594: I external/org_tensorflow/tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2020-05-28 20:25:46.166833: I external/org_tensorflow/tensorflow/cc/saved_model/loader.cc:202] Restoring SavedModel bundle.
+2020-05-28 20:25:46.523424: I external/org_tensorflow/tensorflow/cc/saved_model/loader.cc:151] Running initialization op on SavedModel bundle at path: /mnt/models/0001
+2020-05-28 20:25:46.714003: I external/org_tensorflow/tensorflow/cc/saved_model/loader.cc:311] SavedModel load for tags { serve }; Status: success. Took 794057 microseconds.
+2020-05-28 20:25:46.714101: I tensorflow_serving/servables/tensorflow/saved_model_warmup.cc:103] No warmup data file found at /mnt/models/0001/assets.extra/tf_serving_warmup_requests
+2020-05-28 20:25:46.714463: I tensorflow_serving/core/loader_harness.cc:86] Successfully loaded servable version {name: mobilenet-fullstack version: 1}
+2020-05-28 20:25:46.717838: I tensorflow_serving/model_servers/server.cc:324] Running gRPC ModelServer at 0.0.0.0:9000 ...
+[warn] getaddrinfo: address family for nodename not supported
+2020-05-28 20:25:46.721079: I tensorflow_serving/model_servers/server.cc:344] Exporting HTTP/REST API at:localhost:8080 ...
+[evhttp_server.cc : 239] RAW: Entering the event loop ...

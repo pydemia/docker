@@ -6,32 +6,37 @@ metadata:
 spec:
   default:
     predictor:
-      serviceAccountName: s3-private-sa
+      # minReplicas: 1
+      # maxReplicas: 3
+      serviceAccountName: yjkim-private-deployer-s3
       tensorflow:
         storageUri: "s3://yjkim-models/kfserving/mobilenet/predictor/mobilenet_saved_model"
         runtimeVersion: "1.14.0"
         # resources:
         #   requests:
-        #     cpu: 500m
-        #     memory: 5Gi                        
+        #     cpu: 200m
+        #     memory: 1Gi                        
         #   limits:
-        #     cpu: 1000m
-        #     memory: 10Gi
+        #     cpu: 400m
+        #     memory: 1.2Gi
     transformer:
-      serviceAccountName: s3-private-sa
+      # minReplicas: 1
+      # maxReplicas: 3
+      serviceAccountName: yjkim-private-deployer-gs
       custom:
         imagePullSecrets:
-        - name: docker-secret-key
+        - name: pydemia-docker-private-key
+        # - name: yjkim-kube-admin-sa-gcr-private-key
         container:
           image: docker.io/pydemia/mobilenet_transformer:tf1.15.2-0.2.0
           name: kfserving-container
           # resources:
           #   requests:
-          #     cpu: 400m
-          #     memory: 3Gi
+          #     cpu: 100m
+          #     memory: 1Gi
           #   limits:
-          #     cpu: 1000m
-          #     memory: 4Gi
+          #     cpu: 300m
+          #     memory: 1Gi
     explainer:
       # serviceAccountName: s3-private-sa
       # custom:
@@ -47,20 +52,26 @@ spec:
       #       value: /mnt/models
       #     - name: STORAGE_URI
       #       value: s3://yjkim-models/kfserving/mobilenet/explainer
-      serviceAccountName: s3-private-sa
+      serviceAccountName: yjkim-private-deployer-s3
+      # minReplicas: 1
+      # maxReplicas: 1
       alibi:
         type: AnchorImages
         storageUri: "s3://yjkim-models/kfserving/mobilenet/explainer"
         runtimeVersion: "v0.3.2-predict_fn"
         config:
-          batch_size: "30"
+          batch_size: "13"
+          verbose: "1"
+          #n_covered_ex: "10"
+          #coverage_samples: "20"
+          # beam_size: "2"
         # resources:
         #   requests:
         #     cpu: 200m
-        #     memory: 5Gi            
+        #     memory: 1Gi            
         #   limits:
         #     cpu: 500m
-        #     memory: 10Gi
+        #     memory: 2Gi
 
 
 

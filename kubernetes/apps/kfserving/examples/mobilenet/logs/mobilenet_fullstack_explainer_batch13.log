@@ -1,0 +1,8 @@
+[I 200524 15:40:57 __main__:116] Extra args: {'batch_size': 13}
+[I 200524 15:40:57 storage:35] Copying contents of /mnt/models to local
+[I 200524 15:40:57 __main__:125] Loading Alibi model
+[I 200524 15:40:57 explainer:47] Predict URL set to mobilenet-fullstack-transformer-default.default
+[I 200524 15:40:57 kfserver:88] Registering model: mobilenet-fullstack
+[I 200524 15:40:57 kfserver:77] Listening on port 8080
+[I 200524 15:40:57 kfserver:79] Will fork 0 workers
+[I 200524 15:40:57 process:126] Starting 4 processes

@@ -85,9 +85,9 @@ def _load_b64_string_to_pil_img(b64_byte_string):
 
 
 def preprocess_fn(instance):
-    logging.info('preprocess_fn:input: type:{} shape:{}'.format(
-        type(instance), _check_shape(instance)
-    ))
+    # logging.info('preprocess_fn:input: type:{} shape:{}'.format(
+    #     type(instance), _check_shape(instance)
+    # ))
 
     # For prediction, `instance` must contain the real input only.
     img_array = np.array(instance)  # instance['input_1']
@@ -103,9 +103,9 @@ def preprocess_fn(instance):
     )
     img = cv2.resize(img_prep, (224, 224), interpolation=cv2.INTER_CUBIC)
     x = img.tolist()
-    logging.info('preprocess_fn:output: type: {} shape: {}'.format(
-        type(x), _check_shape(x)
-    ))
+    # logging.info('preprocess_fn:output: type: {} shape: {}'.format(
+    #     type(x), _check_shape(x)
+    # ))
     # x = x.tolist()  # _serialize(x)
     return x
 
