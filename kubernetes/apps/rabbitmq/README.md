@@ -16,6 +16,10 @@ namespace/rabbitmq labeled
 $ helm repo add bitnami https://charts.bitnami.com/bitnami
 "bitnami" has been added to your repositories
 
+$ helm fetch bitnami/rabbitmq 
+
+$ tar -xf rabbitmq-6.25.13.tgz  # untar in rabbitmq
+
 # helm install --name kfs-rabbitmq bitnami/rabbitmq --namespace rabbitmq
 # helm del --purge kfs-rabbitmq
 $ helm install --name rabbitmq \
