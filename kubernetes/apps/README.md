@@ -10,6 +10,15 @@ https://cert-manager.io/docs/installation/upgrading/
 * `0.14` to `0.15`
 https://cert-manager.io/docs/installation/upgrading/upgrading-0.14-0.15/
 
+```bash
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+# helm upgrade --version v0.15.1 cert-manager jetstack/cert-manager
+helm install jetstack/cert-manager --version v0.15.1 --generate-name
+
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.crds.yaml
+```
+
 
 ### Istio
 
@@ -261,4 +270,38 @@ statefulset.apps/prometheus-system configured
 service/zipkin created
 deployment.apps/zipkin configured
 The Service "grafana" is invalid: spec.ports[0].nodePort: Forbidden: may not be used when `type` is 'ClusterIP'
+```
+
+
+---
+
+```bash
+❯ kubectl rollout restart deployment                                                                                                                [Thu 10/22 2020 17:55:01 KST]
+deployment.extensions/cert-manager-1603357490 restarted
+deployment.extensions/cert-manager-1603357490-cainjector restarted
+deployment.extensions/cert-manager-1603357490-webhook restarted
+ base  ✓ pydemia@pydemia-sk-mac🏠  ~ 
+❯ kubectl rollout restart deployment --all-namespaces                                                                                               [Thu 10/22 2020 18:08:46 KST]
+Error: unknown flag: --all-namespaces
+See 'kubectl rollout restart --help' for usage.
+ base  ✘ pydemia@pydemia-sk-mac🏠  ~ 
+❯ kubectl rollout restart deployment --all-nam                                                                                                      [Thu 10/22 2020 18:09:05 KST]
+ base  ✘ pydemia@pydemia-sk-mac🏠  ~ 
+❯ kubectl -n istio-system rollout restart deployment                                                                                                [Thu 10/22 2020 18:09:10 KST]
+deployment.extensions/grafana restarted
+deployment.extensions/istio-ingressgateway restarted
+deployment.extensions/istio-tracing restarted
+deployment.extensions/istiod restarted
+deployment.extensions/kiali restarted
+deployment.extensions/prometheus restarted
+deployment.extensions/zipkin restarted
+ base  ✓ pydemia@pydemia-sk-mac🏠  ~ 
+❯ kubectl -n knative-serving rollout restart deployment                                                                                             [Thu 10/22 2020 18:09:43 KST]
+deployment.extensions/activator restarted
+deployment.extensions/autoscaler restarted
+deployment.extensions/autoscaler-hpa restarted
+deployment.extensions/controller restarted
+deployment.extensions/istio-webhook restarted
+deployment.extensions/networking-istio restarted
+deployment.extensions/webhook restarted
 ```
