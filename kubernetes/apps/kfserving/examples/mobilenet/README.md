@@ -224,7 +224,9 @@ HOSTNAME  : mobilenet-fullstack.ifsvc.104.198.233.27.xip.io
 curl -v -H "Host: ${SERVICE_HOSTNAME}" \
   http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict \
   -d $INPUT_PATH > ./logs/output_predict.json
-
+curl -v -H "Host: mobilenet-fullstack.ifsvc.104.198.233.27.xip.io" \
+  http://$CLUSTER_IP/v1/models/$MODEL_NAME:predict \
+  -d $INPUT_PATH
 # EXPLANATION
 # BUG: env_var not working
 curl -v \
