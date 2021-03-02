@@ -18,7 +18,7 @@ printf '%s\n' '_/  ___// /_/ // / /_//  __// / / / / // // /_/ |    '
 printf '%s\n' '/__/    \__, / \____/ \___//_/ /_/ /_//_/ \___,_\    '
 printf '%s\n' '       /____/                                        '
 printf "%s\n"
-printf "${BLUE}${BOLD}%s${NORMAL}\n" "$(echo lsb_release -icrd)"
+printf "${BLUE}${BOLD}%s${NORMAL}\n" "$(lsb_release -icrd)"
 
 echo -e "\e[0;33m"
 
