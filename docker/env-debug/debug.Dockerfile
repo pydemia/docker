@@ -41,6 +41,6 @@ RUN k9s_version="v0.24.2" && \
     rm -rf ./k9s ./k9s.tar.gz && \
     echo "\nInstalled in: $(which k9s)"
 
-RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 # ENTRYPOINT ["/bin/bash"]

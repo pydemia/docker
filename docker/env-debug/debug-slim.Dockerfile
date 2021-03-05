@@ -41,6 +41,7 @@ RUN cat trademark.sh >> /etc/bash.bashrc && rm trademark.sh
 COPY commands.sh commands.sh
 RUN cat commands.sh >> /etc/bash.bashrc && rm commands.sh
 
-RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
 
 # ENTRYPOINT ["/bin/bash"]
