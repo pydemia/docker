@@ -6,14 +6,15 @@ LABEL maintainer="Youngju Jaden Kim <pydemia@gmail.com>"
 #     apt install -y -qq dnsutils curl git vim
 
 RUN apk update && \
-    apk add --no-cache curl vim bash shadow unzip tree git openssh \
+    apk add --no-cache curl vim bash unzip tree git openssh \
     jq yq ca-certificates bash-completion gnupg && \
     rm -rf /var/cache/apk/*
+# shadow
 # RUN apk cache --purge
 
-RUN sed -i -e "s/bin\/ash/bin\/bash/" /etc/passwd && \
-    echo "auth       sufficient   pam_shells.so" > /etc/pam.d/chsh && \
-    chsh -s /bin/bash
+RUN sed -i -e "s/bin\/ash/bin\/bash/" /etc/passwd
+# RUN echo "auth       sufficient   pam_shells.so" > /etc/pam.d/chsh && \
+#     chsh -s /bin/bash
 ENV LC_ALL=en_US.UTF-8
 SHELL ["/bin/bash", "-c"]
 
