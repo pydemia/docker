@@ -7,7 +7,7 @@ LABEL maintainer="Youngju Jaden Kim <pydemia@gmail.com>"
 
 RUN apk update && \
     apk add --no-cache curl vim bash unzip tree git openssh \
-    jq yq ca-certificates bash-completion gnupg && \
+    jq yq ca-certificates bash-completion gnupg mysql-client && \
     rm -rf /var/cache/apk/*
 # shadow
 # RUN apk cache --purge

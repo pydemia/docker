@@ -16,7 +16,7 @@ RUN apt-get update -q && \
     apt-get install -y curl software-properties-common \
     git vim bash-completion unzip tree \
     apt-transport-https ca-certificates iputils-ping \
-    gnupg jq python3.8 python3-pip 
+    gnupg jq python3.8 python3-pip mysql-client
 
 # Add 3.8 to the available alternatives and set python3.8 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1 && \
